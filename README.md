@@ -157,4 +157,4 @@ you can pass the following event handlers:
 #### CallManager.end() release the resources
 
 ### Example
-example/index.html
+https://chaoice.github.io/swrtc/
