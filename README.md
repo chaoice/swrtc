@@ -1,10 +1,10 @@
-## simple webrtc library with mqtt as signaling server
+# simple webrtc library with mqtt as signaling server
 
 This is a simple webrtc library using mqtt as signaling server. to establish a peer-to-peer connection between two clients. The signaling server is used to exchange messages between the clients.
 
 to use this library, you need to have a mqtt server running and the necessary credentials.
 
-### Usage
+## Usage
 step1 : install the library using npm
 ```
 npm install swrtc mqtt --save
@@ -99,9 +99,9 @@ let callManager = new CallManager(clientTopic,{
 
 ```
 
-### API
+## API
 
-#### CallManager(clientTopic,mqttOptions,webrtcOptions,eventHandlers) constructor
+### CallManager(clientTopic,mqttOptions,webrtcOptions,eventHandlers) constructor
 
 - clientTopic: mqtt topic for the client
 - mqttOptions: mqtt options for the client
@@ -137,26 +137,26 @@ you can pass the following event handlers:
 - disconnected: function to handle the rtc  disconnection
 
 
-#### CallManager.makeCall(calleeTopic) call a peer
+### CallManager.makeCall(calleeTopic) call a peer
 
 - calleeTopic:  topic of the peer to call
 
-#### CallManager.answerCall(call) answer the call
+### CallManager.answerCall(call) answer the call
 - call : the call object to answer
 ```javascript
     calleeTopic:'/call/1',# 
     clientTopic:'/call/2',#
     callerTopic:'/call/1'#
 ```
-#### CallManager.hangUp() hang up the call
+### CallManager.hangUp() hang up the call
 ```javascript
     calleeTopic:'/call/1',# 
     clientTopic:'/call/2',#
     callerTopic:'/call/1'#
 ```
-#### CallManager.end() release the resources
+### CallManager.end() release the resources
 
-### run the demo
+## run the demo
 ```shell
 npm install
 npm run dev
