@@ -102,7 +102,7 @@
 </style>
 <script>
   const mqttConfig={
-    url: 'ws://broker-cn.emqx.io:8083/mqtt',
+    url:location.protocol=='https:'? 'wss://broker-cn.emqx.io:8084/mqtt': 'ws://broker-cn.emqx.io:8083/mqtt',
     username:"test",
     password:"test",
     clientId:"test"+Math.random().toString(16).substr(2, 8)
