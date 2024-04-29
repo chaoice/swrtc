@@ -3,7 +3,7 @@ import './src/scss/styles.scss'
 import $ from 'jquery';
 import mqtt from 'mqtt';
 const mqttConfig={
-    url: 'ws://broker-cn.emqx.io:8083/mqtt',
+    url: 'ws://81.70.3.211:8083/mqtt',
     username:"test",
     password:"test",
     clientId:"test"+Math.random().toString(16).substr(2, 8)
@@ -53,6 +53,7 @@ var connect=function(){
     });
     mqttClient.on("message", (topic, message) => {
         // message is Buffer
+        console.log("mqttMesage",topic,message.toString())
         callManager.messageHandler(topic, message);
     });
     callManager = new CallManager(clientTopic,{
@@ -61,7 +62,7 @@ var connect=function(){
             mqttClient.publish(topic,messsage);
         }
     },{
-        video:true
+        audio:true
     },{
         "offerIn":(data)=>{
             //对方发过来的offer，展示接听界面
@@ -85,7 +86,7 @@ var connect=function(){
         },
         "localCallStream":(data)=>{
             //本地流，设置播放流
-            document.getElementById("local").srcObject = data.stream;
+            // document.getElementById("local").srcObject = data.stream;
             console.log("打出时本地流",data);
         },
         "callStream":(data)=>{
@@ -95,7 +96,7 @@ var connect=function(){
         },
         "localAnswerStream":(data)=>{
             //本地流，设置播放流
-            document.getElementById("local").srcObject = data.stream;
+            // document.getElementById("local").srcObject = data.stream;
             console.log("接听时本地流",data);
         },
         "answerStream":(data)=>{

@@ -19,6 +19,7 @@ export default defineConfig({
         hot: true
     },
     build: {
+        minify: false,
         lib: {
             entry: './lib/main.js',
             name: 'CallManager',
