@@ -1,0 +1,45 @@
+{
+  "name": "swrtc",
+  "author": "chaoice",
+  "email": "215737287@qq.com",
+  "version": "0.0.4",
+  "type": "module",
+  "license": "MIT",
+  "description": "A WebRTC based communication library for web applications",
+  "homepage": "https://github.com/chaoice/swrtc",
+  "unpkg": "./dist/CallManager.umd.js",
+  "main": "./dist/CallManager.cjs.js",
+  "module": "./dist/CallManager.es.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/CallManager.es.js",
+      "require": "./dist/CallManager.cjs.js",
+      "types": "./index.d.ts",
+      "default": "./dist/CallManager.umd.js"
+    }
+  },
+
+  "files": [
+    "dist",
+    "example",
+    "index.d.ts"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@rollup/plugin-inject": "^5.0.5",
+    "sass": "^1.72.0",
+    "vite": "^5.1.6"
+  },
+  "peerDependencies": {
+    "@popperjs/core": "^2.11.8",
+    "bootstrap": "^5.3.3",
+    "intl-tel-input": "^19.5.7",
+    "jquery": "^3.7.1",
+    "mqtt": "^5.5.4"
+  }
+}
