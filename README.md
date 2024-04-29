@@ -156,3 +156,8 @@ you can pass the following event handlers:
 ```
 #### CallManager.end() release the resources
 
+### run the demo
+```shell
+npm install
+npm run dev
+```
