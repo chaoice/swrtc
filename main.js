@@ -3,8 +3,8 @@ import './src/scss/styles.scss'
 import $ from 'jquery';
 import mqtt from 'mqtt';
 const mqttConfig={
-    // url: 'ws://81.70.3.211:8083/mqtt',
-    url: 'ws://10.1.20.214:8083/mqtt',
+    url: 'ws://81.70.3.211:8083/mqtt',
+    // url: 'ws://10.1.20.214:8083/mqtt',
     username:"test",
     password:"test",
     clientId:"test"+Math.random().toString(16).substr(2, 8)
