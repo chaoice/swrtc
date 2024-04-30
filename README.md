@@ -14,8 +14,18 @@ npm install swrtc mqtt --save
 ```
 
 step2 : import the library in your project
+
+### for browser
 ```javascript
 import callManager from 'swrtc';
+```
+### for nodejs
+```javascript
+const CallManager = require('swrtc');
+```
+### for cdns
+```html
+<script  src="https://cdn.jsdelivr.net/npm/swrtc/dist/CallManager.umd.js"></script>
 ```
 
 step3 : create a new instance of MqttClient with the following parameters:
