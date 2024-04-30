@@ -11671,23 +11671,7 @@ var __privateMethod = (obj, member, method) => {
     @jspm/core/nodelibs/browser/buffer.js:
       (*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> *)
     */
-  var browser = {};
-  browser.MediaStream = window.MediaStream;
-  browser.MediaStreamTrack = window.MediaStreamTrack;
-  browser.RTCDataChannel = window.RTCDataChannel;
-  browser.RTCDataChannelEvent = window.RTCDataChannelEvent;
-  browser.RTCDtlsTransport = window.RTCDtlsTransport;
-  browser.RTCIceCandidate = window.RTCIceCandidate;
-  browser.RTCIceTransport = window.RTCIceTransport;
-  browser.RTCPeerConnection = window.RTCPeerConnection;
-  browser.RTCPeerConnectionIceEvent = window.RTCPeerConnectionIceEvent;
-  browser.RTCRtpReceiver = window.RTCRtpReceiver;
-  browser.RTCRtpSender = window.RTCRtpSender;
-  browser.RTCRtpTransceiver = window.RTCRtpTransceiver;
-  browser.RTCSctpTransport = window.RTCSctpTransport;
-  browser.RTCSessionDescription = window.RTCSessionDescription;
-  browser.getUserMedia = window.getUserMedia;
-  browser.mediaDevices = navigator.mediaDevices;
+  const wrtc = require("wrtc");
   function getRuntimeEnv() {
     if (typeof window != "undefined") {
       return "web";
@@ -11700,35 +11684,35 @@ var __privateMethod = (obj, member, method) => {
       if (getRuntimeEnv() === "web") {
         return navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
       } else {
-        return browser.getUserMedia.bind(browser);
+        return wrtc.getUserMedia.bind(wrtc);
       }
     }
     static get RTCPeerConnection() {
       if (getRuntimeEnv() === "web") {
         return RTCPeerConnection;
       } else {
-        return browser.RTCPeerConnection;
+        return wrtc.RTCPeerConnection;
       }
     }
     static get RTCSessionDescription() {
       if (getRuntimeEnv() === "web") {
         return RTCSessionDescription;
       } else {
-        return browser.RTCSessionDescription;
+        return wrtc.RTCSessionDescription;
       }
     }
     static get RTCIceCandidate() {
       if (getRuntimeEnv() === "web") {
         return RTCIceCandidate;
       } else {
-        return browser.RTCIceCandidate;
+        return wrtc.RTCIceCandidate;
       }
     }
     static get MediaStream() {
       if (getRuntimeEnv() === "web") {
         return MediaStream;
       } else {
-        return browser.MediaStream;
+        return wrtc.MediaStream;
       }
     }
   }
@@ -11737,7 +11721,7 @@ var __privateMethod = (obj, member, method) => {
      *
      * @param clientTopic
      * @param mqttConfig
-     * @param eventListeners �¼��ص�������
+     * @param eventListeners 事件回调，包含
      */
     constructor(clientTopic, mqttConfig, constraints, eventListeners) {
       this.mqttClient = null;
@@ -11752,12 +11736,12 @@ var __privateMethod = (obj, member, method) => {
       this.callIns = {};
     }
     /***
-     * ����mqtt��Ϣ
+     * 处理mqtt消息
      * @param topic
      * @param message
      */
     messageHandler(topic, message) {
-      console.log("�յ���Ϣ", topic, message.toString());
+      console.log("收到消息", topic, message.toString());
       let data = JSON.parse(message.toString());
       if (data.type == "offer") {
         this.eventListeners["offerIn"](data);
@@ -11789,7 +11773,7 @@ var __privateMethod = (obj, member, method) => {
       }
     }
     /***
-     * ��ʼ��mqtt����
+     * 初始化mqtt连接
      * @param mqttConfig
      * @returns {Promise<unknown>}
      */
@@ -11803,7 +11787,7 @@ var __privateMethod = (obj, member, method) => {
           this.mqttClient.on("connect", () => {
             this.mqttClient.subscribe(this.clientTopic, (err) => {
               if (!err) {
-                console.log("���ĳɹ�", this.clientTopic);
+                console.log("订阅成功", this.clientTopic);
                 resolve(this.mqttClient);
               } else {
                 reject(err);
@@ -11811,7 +11795,7 @@ var __privateMethod = (obj, member, method) => {
             });
           });
           this.mqttClient.on("reconnect", () => {
-            console.log("������...");
+            console.log("重连中...");
           });
           this.mqttClient.on("message", (topic, message) => {
             this.messageHandler(topic, message);
@@ -11820,7 +11804,7 @@ var __privateMethod = (obj, member, method) => {
       });
     }
     /***
-     * ��绰
+     * 打电话
      * @param calleeTopic
      * @param relayTopic
      * @param callerTopic
@@ -11895,7 +11879,7 @@ var __privateMethod = (obj, member, method) => {
       this.localPcMap[calleeTopic] = local;
     }
     /***
-     * �����绰
+     * 接听电话
      * @param data
      * @returns {Promise<void>}
      */
@@ -11972,7 +11956,7 @@ var __privateMethod = (obj, member, method) => {
       return remote;
     }
     /***
-     * �ر�����
+     * 关闭连接
      * @param rtcPeerConnection
      */
     closeConnection(rtcPeerConnection) {
@@ -12019,7 +12003,7 @@ var __privateMethod = (obj, member, method) => {
       }
     }
     /***
-     * �Ҷϵ绰
+     * 挂断电话
      * @param data
      */
     hangUp(data) {
@@ -12052,7 +12036,7 @@ var __privateMethod = (obj, member, method) => {
       }
     }
     /***
-     * �����ͻ�����Դ
+     * 清理客户端资源
      */
     end() {
       this.mqttClient.end();

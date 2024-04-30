@@ -1,8 +1,11 @@
-# simple webrtc library with mqtt as signaling server
+# simple webrtc library with mqtt as signaling server 
 
 This is a simple webrtc library using mqtt as signaling server. to establish a peer-to-peer connection between two clients. The signaling server is used to exchange messages between the clients.
 
 to use this library, you need to have a mqtt server running and the necessary credentials.
+## browser and server compatibility
+
+This library is compatible with all modern browsers and nodejs.
 
 ## Usage
 step1 : install the library using npm

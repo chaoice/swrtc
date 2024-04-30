@@ -26,11 +26,19 @@ export default defineConfig({
         lib: {
             entry: './lib/main.js',
             name: 'CallManager',
-            fileName: (format) => `CallManager.${format}.js`, // 这样可以为不同的格式指定不同的文件名
+            fileName: (format) => {
+                if(format==="cjs"){
+                    return `CallManager.cjs`
+                }else if(format==="es"){
+                    return `CallManager.js`
+                }else{
+                    return `CallManager.${format}.js`
+                }
+            }, // 杩欐牱鍙互涓轰笉鍚岀殑鏍煎紡鎸囧畾涓嶅悓鐨勬枃浠跺悕
             formats: ['umd', 'es', 'cjs']
         },
         rollupOptions: {
-            minifyInternalExports: true,
+            minifyInternalExports: true
         }
 
     }
