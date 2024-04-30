@@ -11668,6 +11668,67 @@ const mqtt = JS();
 @jspm/core/nodelibs/browser/buffer.js:
   (*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> *)
 */
+var browser = {};
+browser.MediaStream = window.MediaStream;
+browser.MediaStreamTrack = window.MediaStreamTrack;
+browser.RTCDataChannel = window.RTCDataChannel;
+browser.RTCDataChannelEvent = window.RTCDataChannelEvent;
+browser.RTCDtlsTransport = window.RTCDtlsTransport;
+browser.RTCIceCandidate = window.RTCIceCandidate;
+browser.RTCIceTransport = window.RTCIceTransport;
+browser.RTCPeerConnection = window.RTCPeerConnection;
+browser.RTCPeerConnectionIceEvent = window.RTCPeerConnectionIceEvent;
+browser.RTCRtpReceiver = window.RTCRtpReceiver;
+browser.RTCRtpSender = window.RTCRtpSender;
+browser.RTCRtpTransceiver = window.RTCRtpTransceiver;
+browser.RTCSctpTransport = window.RTCSctpTransport;
+browser.RTCSessionDescription = window.RTCSessionDescription;
+browser.getUserMedia = window.getUserMedia;
+browser.mediaDevices = navigator.mediaDevices;
+function getRuntimeEnv() {
+  if (typeof window != "undefined") {
+    return "web";
+  } else {
+    return "node";
+  }
+}
+class RtcFactory {
+  static get getUserMedia() {
+    if (getRuntimeEnv() === "web") {
+      return navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+    } else {
+      return browser.getUserMedia.bind(browser);
+    }
+  }
+  static get RTCPeerConnection() {
+    if (getRuntimeEnv() === "web") {
+      return RTCPeerConnection;
+    } else {
+      return browser.RTCPeerConnection;
+    }
+  }
+  static get RTCSessionDescription() {
+    if (getRuntimeEnv() === "web") {
+      return RTCSessionDescription;
+    } else {
+      return browser.RTCSessionDescription;
+    }
+  }
+  static get RTCIceCandidate() {
+    if (getRuntimeEnv() === "web") {
+      return RTCIceCandidate;
+    } else {
+      return browser.RTCIceCandidate;
+    }
+  }
+  static get MediaStream() {
+    if (getRuntimeEnv() === "web") {
+      return MediaStream;
+    } else {
+      return browser.MediaStream;
+    }
+  }
+}
 class CallManager {
   /***
    *
@@ -11703,22 +11764,22 @@ class CallManager {
         clientTopic: data.clientTopic
       };
     } else if (data.type == "candidate") {
-      let candidate = new RTCIceCandidate(data.ice);
+      let candidate = new RtcFactory.RTCIceCandidate(data.ice);
       if (data.kind == "local") {
-        if (this.remotePcMap[data.clientTopic] && this.remotePcMap[data.clientTopic].remoteDescription != null) {
-          this.remotePcMap[data.clientTopic].addIceCandidate(candidate);
+        if (this.remotePcMap[data.callerTopic] && this.remotePcMap[data.callerTopic].remoteDescription != null) {
+          this.remotePcMap[data.callerTopic].addIceCandidate(candidate);
         } else {
-          if (!this.remoteIcesMap[data.clientTopic]) {
-            this.remoteIcesMap[data.clientTopic] = [];
+          if (!this.remoteIcesMap[data.callerTopic]) {
+            this.remoteIcesMap[data.callerTopic] = [];
           }
-          this.remoteIcesMap[data.clientTopic].push(candidate);
+          this.remoteIcesMap[data.callerTopic].push(candidate);
         }
       } else {
-        this.localPcMap[data.clientTopic].addIceCandidate(candidate);
+        this.localPcMap[data.calleeTopic].addIceCandidate(candidate);
       }
     } else if (data.type == "answer") {
-      let answer = new RTCSessionDescription(data.sdp);
-      this.localPcMap[data.clientTopic].setRemoteDescription(answer);
+      let answer = new RtcFactory.RTCSessionDescription(data.sdp);
+      this.localPcMap[data.calleeTopic].setRemoteDescription(answer);
     } else if (data.type == "hangUp") {
       this.hangUp(data);
       this.eventListeners["hangUp"] && this.eventListeners["hangUp"](data);
@@ -11762,21 +11823,25 @@ class CallManager {
    * @param callerTopic
    * @returns {Promise<void>}
    */
-  async makeCall({ calleeTopic, relayTopic, callerTopic }) {
-    let local = new RTCPeerConnection(null);
-    let stream = await navigator.mediaDevices.getUserMedia(this.constraints);
+  async makeCall({ calleeTopic, relayTopic, callerTopic, relayStream }) {
+    let local = new RtcFactory.RTCPeerConnection(null);
+    let stream = relayStream || await RtcFactory.getUserMedia(this.constraints);
     local.addTrack(stream.getTracks()[0]);
     this.eventListeners["localCallStream"] && this.eventListeners["localCallStream"]({
       pc: local,
-      stream
+      stream,
+      callerTopic,
+      calleeTopic
     });
     local.ontrack = (event) => {
       console.log("onaddtrack", event);
-      let stream2 = new MediaStream();
+      let stream2 = new RtcFactory.MediaStream();
       stream2.addTrack(event.track);
       this.eventListeners["callStream"]({
         pc: local,
-        stream: stream2
+        stream: stream2,
+        callerTopic,
+        calleeTopic
       });
     };
     local.onicecandidate = (e) => {
@@ -11785,6 +11850,8 @@ class CallManager {
         this.mqttClient.publish(relayTopic || calleeTopic, JSON.stringify({
           type: "candidate",
           kind: "local",
+          callerTopic: callerTopic || this.clientTopic,
+          calleeTopic,
           clientTopic: this.clientTopic,
           ice: iceCandidate
         }));
@@ -11822,7 +11889,7 @@ class CallManager {
         });
       }
     };
-    this.localPcMap[relayTopic || calleeTopic] = local;
+    this.localPcMap[calleeTopic] = local;
   }
   /***
    * �����绰
@@ -11830,15 +11897,16 @@ class CallManager {
    * @returns {Promise<void>}
    */
   async answerCall(data) {
-    let remote = new RTCPeerConnection(null);
-    this.remotePcMap[data.clientTopic] = remote;
+    let remote = new RtcFactory.RTCPeerConnection(null);
+    this.remotePcMap[data.callerTopic] = remote;
     remote.ontrack = (e) => {
       console.log("onaddtrack", e);
-      let stream2 = new MediaStream();
+      let stream2 = new RtcFactory.MediaStream();
       stream2.addTrack(e.track);
       this.eventListeners["answerStream"]({
         pc: remote,
-        stream: stream2
+        stream: stream2,
+        ...data
       });
     };
     remote.oniceconnectionstatechange = () => {
@@ -11854,11 +11922,12 @@ class CallManager {
         });
       }
     };
-    let stream = await navigator.mediaDevices.getUserMedia(this.constraints);
+    let stream = await RtcFactory.getUserMedia(this.constraints);
     remote.addTrack(stream.getTracks()[0]);
     this.eventListeners["localAnswerStream"] && this.eventListeners["localAnswerStream"]({
       pc: remote,
-      stream
+      stream,
+      ...data
     });
     remote.onicecandidate = (e) => {
       const iceCandidate = e.candidate;
@@ -11869,13 +11938,15 @@ class CallManager {
           JSON.stringify({
             type: "candidate",
             clientTopic: this.clientTopic,
+            calleeTopic: data.calleeTopic,
+            callerTopic: data.callerTopic,
             kind: "remote",
             ice: iceCandidate
           })
         );
       }
     };
-    let offer = new RTCSessionDescription(data.sdp);
+    let offer = new RtcFactory.RTCSessionDescription(data.sdp);
     remote.setRemoteDescription(offer);
     let answer = await remote.createAnswer();
     console.log("createAnswer", answer);
@@ -11890,9 +11961,12 @@ class CallManager {
         sdp: answer
       })
     );
-    for (let i = 0; i < this.remoteIcesMap[data.clientTopic].length; i++) {
-      remote.addIceCandidate(this.remoteIcesMap[data.clientTopic][i]);
+    if (this.remoteIcesMap[data.callerTopic]) {
+      for (let i = 0; i < this.remoteIcesMap[data.callerTopic].length; i++) {
+        remote.addIceCandidate(this.remoteIcesMap[data.callerTopic][i]);
+      }
     }
+    return remote;
   }
   /***
    * �ر�����
@@ -11915,6 +11989,32 @@ class CallManager {
       rtcPeerConnection = null;
     }
   }
+  huangUpAll(data) {
+    let callOut = this.callOuts[data.calleeTopic];
+    if (callOut) {
+      this.closeConnection(this.localPcMap[callOut.calleeTopic]);
+      this.mqttClient.publish(callOut.targetTopic, JSON.stringify({
+        type: "hangUp",
+        clientTopic: callOut.clientTopic,
+        callerTopic: callOut.callerTopic,
+        calleeTopic: callOut.calleeTopic
+      }));
+      delete this.callOuts[data.calleeTopic];
+      delete this.localPcMap[callOut.calleeTopic];
+    }
+    let callIn = this.callIns[data.callerTopic];
+    if (callIn) {
+      this.closeConnection(this.remotePcMap[data.callerTopic]);
+      this.mqttClient.publish(callIn.clientTopic, JSON.stringify({
+        type: "hangUp",
+        clientTopic: this.clientTopic,
+        callerTopic: callIn.callerTopic,
+        calleeTopic: callIn.calleeTopic
+      }));
+      delete this.callIns[data.callerTopic];
+      delete this.remotePcMap[data.callerTopic];
+    }
+  }
   /***
    * �Ҷϵ绰
    * @param data
@@ -11923,7 +12023,7 @@ class CallManager {
     if (data.callerTopic == this.clientTopic) {
       let callOut = this.callOuts[data.calleeTopic];
       if (callOut) {
-        this.closeConnection(this.localPcMap[callOut.targetTopic]);
+        this.closeConnection(this.localPcMap[callOut.calleeTopic]);
         this.mqttClient.publish(callOut.targetTopic, JSON.stringify({
           type: "hangUp",
           clientTopic: callOut.clientTopic,
@@ -11931,12 +12031,12 @@ class CallManager {
           calleeTopic: callOut.calleeTopic
         }));
         delete this.callOuts[data.calleeTopic];
-        delete this.localPcMap[callOut.targetTopic];
+        delete this.localPcMap[callOut.calleeTopic];
       }
     } else {
       let callIn = this.callIns[data.callerTopic];
       if (callIn) {
-        this.closeConnection(this.remotePcMap[data.clientTopic]);
+        this.closeConnection(this.remotePcMap[data.callerTopic]);
         this.mqttClient.publish(callIn.clientTopic, JSON.stringify({
           type: "hangUp",
           clientTopic: this.clientTopic,
@@ -11944,7 +12044,7 @@ class CallManager {
           calleeTopic: callIn.calleeTopic
         }));
         delete this.callIns[data.callerTopic];
-        delete this.remotePcMap[data.clientTopic];
+        delete this.remotePcMap[data.callerTopic];
       }
     }
   }

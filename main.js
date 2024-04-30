@@ -3,13 +3,15 @@ import './src/scss/styles.scss'
 import $ from 'jquery';
 import mqtt from 'mqtt';
 const mqttConfig={
-    url: 'ws://81.70.3.211:8083/mqtt',
+    // url: 'ws://81.70.3.211:8083/mqtt',
+    url: 'ws://10.1.20.214:8083/mqtt',
     username:"test",
     password:"test",
     clientId:"test"+Math.random().toString(16).substr(2, 8)
 }
 import CallManager from './lib/main.js';
 var callManager
+var relayTopic="/relay/2147"
 var currentCall={}
 $(document).ready(function() {
     $('.answer-call').click(function() {
@@ -62,7 +64,7 @@ var connect=function(){
             mqttClient.publish(topic,messsage);
         }
     },{
-        audio:true
+        video:true
     },{
         "offerIn":(data)=>{
             //对方发过来的offer，展示接听界面
@@ -126,7 +128,7 @@ var connect=function(){
 }
 var makeCall=function (){
     const callTopic = document.getElementById('call-topic');
-    callManager.makeCall({calleeTopic:callTopic.value});
+    callManager.makeCall({calleeTopic:callTopic.value,relayTopic:relayTopic,callerTopic:document.getElementById('client-topic').value});
     currentCall={
         calleeTopic:callTopic.value,
         clientTopic:document.getElementById('client-topic').value,

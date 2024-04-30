@@ -2,12 +2,15 @@ import path from 'path'
 
 import {defineConfig} from 'vite'
 import inject from "@rollup/plugin-inject";
+import commonjs from '@rollup/plugin-commonjs';
+
 export default defineConfig({
     plugins: [
         inject({   // => that should be first under plugins array
             $: 'jquery',
             jQuery: 'jquery',
         }),
+        commonjs(),
     ],
     resolve: {
         alias: {

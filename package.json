@@ -2,7 +2,7 @@
   "name": "swrtc",
   "author": "chaoice",
   "email": "215737287@qq.com",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "type": "module",
   "license": "MIT",
   "description": "A WebRTC based communication library for web applications",
@@ -19,7 +19,6 @@
       "default": "./dist/CallManager.umd.js"
     }
   },
-
   "files": [
     "dist",
     "example",
@@ -31,6 +30,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-inject": "^5.0.5",
     "sass": "^1.72.0",
     "vite": "^5.1.6"
@@ -40,6 +40,8 @@
     "bootstrap": "^5.3.3",
     "intl-tel-input": "^19.5.7",
     "jquery": "^3.7.1",
-    "mqtt": "^5.5.4"
+    "mqtt": "^5.5.4",
+    "wrtc": "^0.4.7"
+
   }
 }
