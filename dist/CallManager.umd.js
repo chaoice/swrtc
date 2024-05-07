@@ -11671,6 +11671,11 @@ var __privateMethod = (obj, member, method) => {
     @jspm/core/nodelibs/browser/buffer.js:
       (*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> *)
     */
+  if (getRuntimeEnv() === "web") {
+    window.require = function() {
+      return {};
+    };
+  }
   const wrtc = require("wrtc");
   function getRuntimeEnv() {
     if (typeof window != "undefined") {
@@ -11689,30 +11694,30 @@ var __privateMethod = (obj, member, method) => {
     }
     static get RTCPeerConnection() {
       if (getRuntimeEnv() === "web") {
-        return RTCPeerConnection;
+        return RTCPeerConnection.bind(window);
       } else {
-        return wrtc.RTCPeerConnection;
+        return wrtc.RTCPeerConnection.bind(wrtc);
       }
     }
     static get RTCSessionDescription() {
       if (getRuntimeEnv() === "web") {
-        return RTCSessionDescription;
+        return RTCSessionDescription.bind(window);
       } else {
-        return wrtc.RTCSessionDescription;
+        return wrtc.RTCSessionDescription.bind(wrtc);
       }
     }
     static get RTCIceCandidate() {
       if (getRuntimeEnv() === "web") {
-        return RTCIceCandidate;
+        return RTCIceCandidate.bind(window);
       } else {
-        return wrtc.RTCIceCandidate;
+        return wrtc.RTCIceCandidate.bind(wrtc);
       }
     }
     static get MediaStream() {
       if (getRuntimeEnv() === "web") {
-        return MediaStream;
+        return MediaStream.bind(window);
       } else {
-        return wrtc.MediaStream;
+        return wrtc.MediaStream.bind(wrtc);
       }
     }
   }
@@ -11767,9 +11772,13 @@ var __privateMethod = (obj, member, method) => {
       } else if (data.type == "answer") {
         let answer = new RtcFactory.RTCSessionDescription(data.sdp);
         this.localPcMap[data.calleeTopic].setRemoteDescription(answer);
+        this.callOuts[data.calleeTopic].status = "answered";
       } else if (data.type == "hangUp") {
-        this.hangUp(data);
+        this.hangUp(data, "hangUp");
         this.eventListeners["hangUp"] && this.eventListeners["hangUp"](data);
+      } else if (data.type == "reject") {
+        this.hangUp(data, "reject");
+        this.eventListeners["reject"] && this.eventListeners["reject"](data);
       }
     }
     /***
@@ -11901,11 +11910,13 @@ var __privateMethod = (obj, member, method) => {
         if (remote.iceConnectionState === "failed" || remote.iceConnectionState === "disconnected") {
           this.closeConnection(remote);
           this.eventListeners["disconnected"] && this.eventListeners["disconnected"]({
-            clientTopic: data.clientTopic
+            clientTopic: data.clientTopic,
+            ...data
           });
         } else if (remote.iceConnectionState === "connected") {
           this.eventListeners["connected"] && this.eventListeners["connected"]({
-            clientTopic: data.clientTopic
+            clientTopic: data.clientTopic,
+            ...data
           });
         }
       };
@@ -11953,6 +11964,7 @@ var __privateMethod = (obj, member, method) => {
           remote.addIceCandidate(this.remoteIcesMap[data.callerTopic][i]);
         }
       }
+      this.callIns[data.callerTopic].status = "answered";
       return remote;
     }
     /***
@@ -12005,6 +12017,7 @@ var __privateMethod = (obj, member, method) => {
     /***
      * 挂断电话
      * @param data
+     * @package type 挂断类型，hangUp:正常挂断，reject:拒绝
      */
     hangUp(data) {
       if (data.callerTopic == this.clientTopic) {
@@ -12012,7 +12025,7 @@ var __privateMethod = (obj, member, method) => {
         if (callOut) {
           this.closeConnection(this.localPcMap[callOut.calleeTopic]);
           this.mqttClient.publish(callOut.targetTopic, JSON.stringify({
-            type: "hangUp",
+            type: callOut.status ? "hangUp" : "reject",
             clientTopic: callOut.clientTopic,
             callerTopic: callOut.callerTopic,
             calleeTopic: callOut.calleeTopic
@@ -12025,7 +12038,7 @@ var __privateMethod = (obj, member, method) => {
         if (callIn) {
           this.closeConnection(this.remotePcMap[data.callerTopic]);
           this.mqttClient.publish(callIn.clientTopic, JSON.stringify({
-            type: "hangUp",
+            type: callIn.status ? "hangUp" : "reject",
             clientTopic: this.clientTopic,
             callerTopic: callIn.callerTopic,
             calleeTopic: callIn.calleeTopic
