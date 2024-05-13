@@ -11,7 +11,7 @@ const mqttConfig={
 }
 import CallManager from './lib/main.js';
 var callManager
-var relayTopic="/relay/2147"
+var relayTopic=null
 var currentCall={}
 $(document).ready(function() {
     $('.answer-call').click(function() {
@@ -64,7 +64,15 @@ var connect=function(){
             mqttClient.publish(topic,messsage);
         }
     },{
-        video:true
+        video:true,
+        audio: {
+            noiseSuppression: true,
+            echoCancellation: true,
+            autoGainControl: true,
+            mozNoiseSuppression: true,
+            mozAutoGainControl: true,
+            mozEchoCancellation: true
+        }
     },{
         "offerIn":(data)=>{
             //对方发过来的offer，展示接听界面
@@ -88,7 +96,7 @@ var connect=function(){
         },
         "localCallStream":(data)=>{
             //本地流，设置播放流
-            // document.getElementById("local").srcObject = data.stream;
+            document.getElementById("local").srcObject = data.stream;
             console.log("打出时本地流",data);
         },
         "callStream":(data)=>{
