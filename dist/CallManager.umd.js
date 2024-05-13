@@ -11822,23 +11822,25 @@ var __privateMethod = (obj, member, method) => {
     async makeCall({ calleeTopic, relayTopic, callerTopic, relayStream }) {
       let local = new RtcFactory.RTCPeerConnection(null);
       let stream = relayStream || await RtcFactory.getUserMedia(this.constraints);
-      local.addTrack(stream.getTracks()[0]);
+      stream.getTracks().forEach((track) => local.addTrack(track));
       this.eventListeners["localCallStream"] && this.eventListeners["localCallStream"]({
         pc: local,
         stream,
         callerTopic,
         calleeTopic
       });
+      let localStream = new RtcFactory.MediaStream();
       local.ontrack = (event) => {
         console.log("onaddtrack", event);
-        let stream2 = new RtcFactory.MediaStream();
-        stream2.addTrack(event.track);
-        this.eventListeners["callStream"]({
-          pc: local,
-          stream: stream2,
-          callerTopic,
-          calleeTopic
-        });
+        localStream.addTrack(event.track);
+        setTimeout(() => {
+          this.eventListeners["callStream"]({
+            pc: local,
+            stream: localStream,
+            callerTopic,
+            calleeTopic
+          });
+        }, 200);
       };
       local.onicecandidate = (e) => {
         let iceCandidate = e.candidate;
@@ -11895,15 +11897,17 @@ var __privateMethod = (obj, member, method) => {
     async answerCall(data) {
       let remote = new RtcFactory.RTCPeerConnection(null);
       this.remotePcMap[data.callerTopic] = remote;
+      let remoteStream = new RtcFactory.MediaStream();
       remote.ontrack = (e) => {
         console.log("onaddtrack", e);
-        let stream2 = new RtcFactory.MediaStream();
-        stream2.addTrack(e.track);
-        this.eventListeners["answerStream"]({
-          pc: remote,
-          stream: stream2,
-          ...data
-        });
+        remoteStream.addTrack(e.track);
+        setTimeout(() => {
+          this.eventListeners["answerStream"]({
+            pc: remote,
+            stream: remoteStream,
+            ...data
+          });
+        }, 200);
       };
       remote.oniceconnectionstatechange = () => {
         console.log("remote ice:", remote.iceConnectionState);
@@ -11921,7 +11925,7 @@ var __privateMethod = (obj, member, method) => {
         }
       };
       let stream = await RtcFactory.getUserMedia(this.constraints);
-      remote.addTrack(stream.getTracks()[0]);
+      stream.getTracks().forEach((track) => remote.addTrack(track));
       this.eventListeners["localAnswerStream"] && this.eventListeners["localAnswerStream"]({
         pc: remote,
         stream,
