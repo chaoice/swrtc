@@ -11774,10 +11774,10 @@ var __privateMethod = (obj, member, method) => {
         this.localPcMap[data.calleeTopic].setRemoteDescription(answer);
         this.callOuts[data.calleeTopic].status = "answered";
       } else if (data.type == "hangUp") {
-        this.hangUp(data, "hangUp");
+        this.hangUp(data, "there");
         this.eventListeners["hangUp"] && this.eventListeners["hangUp"](data);
       } else if (data.type == "reject") {
-        this.hangUp(data, "reject");
+        this.hangUp(data, "there");
         this.eventListeners["reject"] && this.eventListeners["reject"](data);
       }
     }
@@ -12021,19 +12021,23 @@ var __privateMethod = (obj, member, method) => {
     /***
      * 挂断电话
      * @param data
-     * @package type 挂断类型，hangUp:正常挂断，reject:拒绝
+     * @package who 挂断类型，there:对面挂断，默认:自己挂断
      */
-    hangUp(data) {
+    hangUp(data, who) {
       if (data.callerTopic == this.clientTopic) {
         let callOut = this.callOuts[data.calleeTopic];
         if (callOut) {
           this.closeConnection(this.localPcMap[callOut.calleeTopic]);
-          this.mqttClient.publish(callOut.targetTopic, JSON.stringify({
-            type: callOut.status ? "hangUp" : "reject",
-            clientTopic: callOut.clientTopic,
-            callerTopic: callOut.callerTopic,
-            calleeTopic: callOut.calleeTopic
-          }));
+          if (who == "there")
+            ;
+          else {
+            this.mqttClient.publish(callOut.targetTopic, JSON.stringify({
+              type: callOut.status ? "hangUp" : "reject",
+              clientTopic: callOut.clientTopic,
+              callerTopic: callOut.callerTopic,
+              calleeTopic: callOut.calleeTopic
+            }));
+          }
           delete this.callOuts[data.calleeTopic];
           delete this.localPcMap[callOut.calleeTopic];
         }
