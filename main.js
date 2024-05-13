@@ -96,7 +96,7 @@ var connect=function(){
         },
         "localCallStream":(data)=>{
             //本地流，设置播放流
-            document.getElementById("local").srcObject = data.stream;
+            // document.getElementById("local").srcObject = data.stream;
             console.log("打出时本地流",data);
         },
         "callStream":(data)=>{
