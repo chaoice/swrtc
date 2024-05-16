@@ -11721,6 +11721,9 @@ var __privateMethod = (obj, member, method) => {
       }
     }
   }
+  var configuration = {
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+  };
   class CallManager {
     /***
      *
@@ -11820,7 +11823,7 @@ var __privateMethod = (obj, member, method) => {
      * @returns {Promise<void>}
      */
     async makeCall({ calleeTopic, relayTopic, callerTopic, relayStream }) {
-      let local = new RtcFactory.RTCPeerConnection(null);
+      let local = new RtcFactory.RTCPeerConnection(configuration);
       let stream = relayStream || await RtcFactory.getUserMedia(this.constraints);
       stream.getTracks().forEach((track) => local.addTrack(track));
       this.eventListeners["localCallStream"] && this.eventListeners["localCallStream"]({
@@ -11895,7 +11898,7 @@ var __privateMethod = (obj, member, method) => {
      * @returns {Promise<void>}
      */
     async answerCall(data) {
-      let remote = new RtcFactory.RTCPeerConnection(null);
+      let remote = new RtcFactory.RTCPeerConnection(configuration);
       this.remotePcMap[data.callerTopic] = remote;
       let remoteStream = new RtcFactory.MediaStream();
       remote.ontrack = (e) => {
