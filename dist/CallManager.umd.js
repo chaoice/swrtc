@@ -11721,9 +11721,6 @@ var __privateMethod = (obj, member, method) => {
       }
     }
   }
-  var configuration = {
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
-  };
   class CallManager {
     /***
      *
@@ -11731,7 +11728,7 @@ var __privateMethod = (obj, member, method) => {
      * @param mqttConfig
      * @param eventListeners 事件回调，包含
      */
-    constructor(clientTopic, mqttConfig, constraints, eventListeners) {
+    constructor(clientTopic, mqttConfig, constraints, eventListeners, turnConfig) {
       this.mqttClient = null;
       this.clientTopic = clientTopic;
       this.initMqttConnection(mqttConfig);
@@ -11742,6 +11739,15 @@ var __privateMethod = (obj, member, method) => {
       this.constraints = constraints;
       this.callOuts = {};
       this.callIns = {};
+      this.turnConfig = turnConfig || {
+        iceServers: [
+          {
+            urls: "turn:154.8.202.184:3478",
+            username: "root",
+            credential: "123456"
+          }
+        ]
+      };
     }
     /***
      * 处理mqtt消息
@@ -11823,7 +11829,7 @@ var __privateMethod = (obj, member, method) => {
      * @returns {Promise<void>}
      */
     async makeCall({ calleeTopic, relayTopic, callerTopic, relayStream }) {
-      let local = new RtcFactory.RTCPeerConnection(configuration);
+      let local = new RtcFactory.RTCPeerConnection(this.turnConfig);
       let stream = relayStream || await RtcFactory.getUserMedia(this.constraints);
       stream.getTracks().forEach((track) => local.addTrack(track));
       this.eventListeners["localCallStream"] && this.eventListeners["localCallStream"]({
@@ -11898,7 +11904,7 @@ var __privateMethod = (obj, member, method) => {
      * @returns {Promise<void>}
      */
     async answerCall(data) {
-      let remote = new RtcFactory.RTCPeerConnection(configuration);
+      let remote = new RtcFactory.RTCPeerConnection(this.turnConfig);
       this.remotePcMap[data.callerTopic] = remote;
       let remoteStream = new RtcFactory.MediaStream();
       remote.ontrack = (e) => {
