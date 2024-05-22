@@ -11755,40 +11755,44 @@ var __privateMethod = (obj, member, method) => {
      * @param message
      */
     messageHandler(topic, message) {
-      console.log("收到消息", topic, message.toString());
-      let data = JSON.parse(message.toString());
-      if (data.type == "offer") {
-        this.eventListeners["offerIn"](data);
-        this.callIns[data.callerTopic] = {
-          callerTopic: data.callerTopic,
-          calleeTopic: data.calleeTopic,
-          clientTopic: data.clientTopic,
-          status: "calling"
-        };
-      } else if (data.type == "candidate") {
-        let candidate = new RtcFactory.RTCIceCandidate(data.ice);
-        if (data.kind == "local") {
-          if (this.remotePcMap[data.callerTopic] && this.remotePcMap[data.callerTopic].remoteDescription != null) {
-            this.remotePcMap[data.callerTopic].addIceCandidate(candidate);
-          } else {
-            if (!this.remoteIcesMap[data.callerTopic]) {
-              this.remoteIcesMap[data.callerTopic] = [];
+      try {
+        console.log("收到消息", topic, message.toString());
+        let data = JSON.parse(message.toString());
+        if (data.type == "offer") {
+          this.eventListeners["offerIn"](data);
+          this.callIns[data.callerTopic] = {
+            callerTopic: data.callerTopic,
+            calleeTopic: data.calleeTopic,
+            clientTopic: data.clientTopic,
+            status: "calling"
+          };
+        } else if (data.type == "candidate") {
+          let candidate = new RtcFactory.RTCIceCandidate(data.ice);
+          if (data.kind == "local") {
+            if (this.remotePcMap[data.callerTopic] && this.remotePcMap[data.callerTopic].remoteDescription != null) {
+              this.remotePcMap[data.callerTopic].addIceCandidate(candidate);
+            } else {
+              if (!this.remoteIcesMap[data.callerTopic]) {
+                this.remoteIcesMap[data.callerTopic] = [];
+              }
+              this.remoteIcesMap[data.callerTopic].push(candidate);
             }
-            this.remoteIcesMap[data.callerTopic].push(candidate);
+          } else {
+            this.localPcMap[data.calleeTopic].addIceCandidate(candidate);
           }
-        } else {
-          this.localPcMap[data.calleeTopic].addIceCandidate(candidate);
+        } else if (data.type == "answer") {
+          let answer = new RtcFactory.RTCSessionDescription(data.sdp);
+          this.localPcMap[data.calleeTopic].setRemoteDescription(answer);
+          this.callOuts[data.calleeTopic].status = "answered";
+        } else if (data.type == "hangUp") {
+          this.hangUp(data, "there");
+          this.eventListeners["hangUp"] && this.eventListeners["hangUp"](data);
+        } else if (data.type == "reject") {
+          this.hangUp(data, "there");
+          this.eventListeners["reject"] && this.eventListeners["reject"](data);
         }
-      } else if (data.type == "answer") {
-        let answer = new RtcFactory.RTCSessionDescription(data.sdp);
-        this.localPcMap[data.calleeTopic].setRemoteDescription(answer);
-        this.callOuts[data.calleeTopic].status = "answered";
-      } else if (data.type == "hangUp") {
-        this.hangUp(data, "there");
-        this.eventListeners["hangUp"] && this.eventListeners["hangUp"](data);
-      } else if (data.type == "reject") {
-        this.hangUp(data, "there");
-        this.eventListeners["reject"] && this.eventListeners["reject"](data);
+      } catch (e) {
+        console.error("呼叫引擎处理消息出错", e);
       }
     }
     /***
@@ -12058,14 +12062,18 @@ var __privateMethod = (obj, member, method) => {
         let callIn = this.callIns[data.callerTopic];
         if (callIn) {
           this.closeConnection(this.remotePcMap[data.callerTopic]);
-          this.mqttClient.publish(callIn.clientTopic, JSON.stringify({
-            type: callIn.status == "answered" ? "hangUp" : "reject",
-            clientTopic: this.clientTopic,
-            callerTopic: callIn.callerTopic,
-            calleeTopic: callIn.calleeTopic,
-            status: callIn.status,
-            direction: "callOut"
-          }));
+          if (who == "there")
+            ;
+          else {
+            this.mqttClient.publish(callIn.clientTopic, JSON.stringify({
+              type: callIn.status == "answered" ? "hangUp" : "reject",
+              clientTopic: this.clientTopic,
+              callerTopic: callIn.callerTopic,
+              calleeTopic: callIn.calleeTopic,
+              status: callIn.status,
+              direction: "callOut"
+            }));
+          }
           delete this.callIns[data.callerTopic];
           delete this.remotePcMap[data.callerTopic];
         }
