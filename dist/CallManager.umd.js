@@ -11762,7 +11762,8 @@ var __privateMethod = (obj, member, method) => {
         this.callIns[data.callerTopic] = {
           callerTopic: data.callerTopic,
           calleeTopic: data.calleeTopic,
-          clientTopic: data.clientTopic
+          clientTopic: data.clientTopic,
+          status: "calling"
         };
       } else if (data.type == "candidate") {
         let candidate = new RtcFactory.RTCIceCandidate(data.ice);
@@ -11877,7 +11878,8 @@ var __privateMethod = (obj, member, method) => {
         callerTopic: callerTopic || this.clientTopic,
         calleeTopic,
         clientTopic: this.clientTopic,
-        targetTopic: relayTopic || calleeTopic
+        targetTopic: relayTopic || calleeTopic,
+        status: "calling"
       };
       local.oniceconnectionstatechange = () => {
         console.log("local ice:", local.iceConnectionState);
@@ -12041,10 +12043,12 @@ var __privateMethod = (obj, member, method) => {
             ;
           else {
             this.mqttClient.publish(callOut.targetTopic, JSON.stringify({
-              type: callOut.status ? "hangUp" : "reject",
+              type: callOut.status == "answered" ? "hangUp" : "reject",
               clientTopic: callOut.clientTopic,
               callerTopic: callOut.callerTopic,
-              calleeTopic: callOut.calleeTopic
+              calleeTopic: callOut.calleeTopic,
+              status: callOut.status,
+              direction: "callIn"
             }));
           }
           delete this.callOuts[data.calleeTopic];
@@ -12055,10 +12059,12 @@ var __privateMethod = (obj, member, method) => {
         if (callIn) {
           this.closeConnection(this.remotePcMap[data.callerTopic]);
           this.mqttClient.publish(callIn.clientTopic, JSON.stringify({
-            type: callIn.status ? "hangUp" : "reject",
+            type: callIn.status == "answered" ? "hangUp" : "reject",
             clientTopic: this.clientTopic,
             callerTopic: callIn.callerTopic,
-            calleeTopic: callIn.calleeTopic
+            calleeTopic: callIn.calleeTopic,
+            status: callIn.status,
+            direction: "callOut"
           }));
           delete this.callIns[data.callerTopic];
           delete this.remotePcMap[data.callerTopic];
