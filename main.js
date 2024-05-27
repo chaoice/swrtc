@@ -3,8 +3,8 @@ import './src/scss/styles.scss'
 import $ from 'jquery';
 import mqtt from 'mqtt';
 const mqttConfig={
-    url: 'ws://81.70.3.211:8083/mqtt',
-    // url: 'ws://10.1.20.214:8083/mqtt',
+    // url: 'ws://81.70.3.211:8083/mqtt',
+    url: 'ws://10.1.20.214:8083/mqtt',
     username:"test",
     wsOptions: {
         rejectUnauthorized: false,
@@ -15,6 +15,7 @@ const mqttConfig={
 import CallManager from './lib/main.js';
 var callManager
 var relayTopic=null
+// var relayTopic='/relay/8'
 var currentCall={}
 $(document).ready(function() {
     $('.answer-call').click(function() {
@@ -68,14 +69,14 @@ var connect=function(){
         }
     },{
         video:true,
-        audio: {
-            noiseSuppression: true,
-            echoCancellation: true,
-            autoGainControl: true,
-            mozNoiseSuppression: true,
-            mozAutoGainControl: true,
-            mozEchoCancellation: true
-        }
+        // audio: {
+        //     noiseSuppression: true,
+        //     echoCancellation: true,
+        //     autoGainControl: true,
+        //     mozNoiseSuppression: true,
+        //     mozAutoGainControl: true,
+        //     mozEchoCancellation: true
+        // }
     },{
         "offerIn":(data)=>{
             //对方发过来的offer，展示接听界面
