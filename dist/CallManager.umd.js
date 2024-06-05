@@ -11749,6 +11749,9 @@ var __privateMethod = (obj, member, method) => {
         ]
       };
     }
+    isRelay(data) {
+      return data.callerTopic != this.clientTopic && data.calleeTopic != this.clientTopic;
+    }
     /***
      * 处理mqtt消息
      * @param topic
@@ -11785,7 +11788,16 @@ var __privateMethod = (obj, member, method) => {
           this.localPcMap[data.calleeTopic].setRemoteDescription(answer);
           this.callOuts[data.calleeTopic].status = "answered";
         } else if (data.type == "hangUp") {
-          this.hangUp(data, "there");
+          if (this.isRelay(data)) {
+            if (data.clientTopic == data.callerTopic) {
+              this.hangUp(data, "there");
+            } else {
+              this.hangUp(data);
+            }
+            this.hangUp({ ...data, callerTopic: this.clientTopic });
+          } else {
+            this.hangUp(data, "there");
+          }
           this.eventListeners["hangUp"] && this.eventListeners["hangUp"](data);
         } else if (data.type == "reject") {
           this.hangUp(data, "there");
@@ -11992,17 +12004,21 @@ var __privateMethod = (obj, member, method) => {
      */
     closeConnection(rtcPeerConnection) {
       if (rtcPeerConnection != null) {
-        rtcPeerConnection.getSenders().forEach((sender) => {
-          sender.track.stop();
-        });
-        rtcPeerConnection.getTransceivers().forEach((transceiver) => {
-          if (transceiver.sender) {
-            transceiver.sender.replaceTrack(null);
-          }
-          if (transceiver.receiver) {
-            transceiver.receiver.track.stop();
-          }
-        });
+        try {
+          rtcPeerConnection.getSenders().forEach((sender) => {
+            sender.track.stop();
+          });
+          rtcPeerConnection.getTransceivers().forEach((transceiver) => {
+            if (transceiver.sender) {
+              transceiver.sender.replaceTrack(null);
+            }
+            if (transceiver.receiver) {
+              transceiver.receiver.track.stop();
+            }
+          });
+        } catch (e) {
+          console.error("关闭连接失败", e);
+        }
         rtcPeerConnection.close();
         rtcPeerConnection = null;
       }

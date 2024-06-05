@@ -15,7 +15,7 @@ const mqttConfig={
 import CallManager from './lib/main.js';
 var callManager
 var relayTopic=null
-// var relayTopic='/relay/8'
+var relayTopic='/relay/8'
 var currentCall={}
 $(document).ready(function() {
     $('.answer-call').click(function() {
@@ -97,6 +97,14 @@ var connect=function(){
                 $('.cuscontainer').css('display', 'none');
             }, 3000);
 
+        },
+        "reject":(data)=>{
+            //对方拒绝或者挂断
+            console.log("reject",data);
+            $('.call-status').text('已挂断...');
+            setTimeout(() => {
+                $('.cuscontainer').css('display', 'none');
+            }, 3000);
         },
         "localCallStream":(data)=>{
             //本地流，设置播放流
