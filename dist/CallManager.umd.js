@@ -11800,7 +11800,16 @@ var __privateMethod = (obj, member, method) => {
           }
           this.eventListeners["hangUp"] && this.eventListeners["hangUp"](data);
         } else if (data.type == "reject") {
-          this.hangUp(data, "there");
+          if (this.isRelay(data)) {
+            if (data.clientTopic == data.callerTopic) {
+              this.hangUp(data, "there");
+            } else {
+              this.hangUp(data);
+            }
+            this.hangUp({ ...data, callerTopic: this.clientTopic });
+          } else {
+            this.hangUp(data, "there");
+          }
           this.eventListeners["reject"] && this.eventListeners["reject"](data);
         }
       } catch (e) {
