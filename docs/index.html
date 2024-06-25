@@ -100,6 +100,8 @@
   video{width: 100%; height: 100%; }
 </style>
 <script>
+  import $ from "jquery";
+
   const mqttConfig={
     url:location.protocol=='https:'? 'wss://broker-cn.emqx.io:8084/mqtt': 'ws://broker-cn.emqx.io:8083/mqtt',
     username:"test",
@@ -182,6 +184,8 @@
       "hangUp":(data)=>{
         //对方拒绝或者挂断
         console.log("hangUp",data);
+        $('.call-buttons').hide();
+
         $('.call-status').text('已挂断...');
         setTimeout(() => {
           $('.cuscontainer').css('display', 'none');
@@ -207,6 +211,24 @@
         //接听电话时对方给的流，设置播放流
         document.getElementById("remote").srcObject = data.stream;
         console.log("接听时对方流",data);
+      },
+      "reject":(data)=>{
+        //对方拒绝或者挂断
+        console.log("reject",data);
+        $('.call-status').text('已挂断...');
+        $('.call-buttons').hide();
+        setTimeout(() => {
+          $('.cuscontainer').css('display', 'none');
+        }, 3000);
+      },
+      "answered":(data)=>{
+        //对方拒绝或者挂断
+        console.log("answered",data);
+        $('.call-status').text('其他设备已接听...');
+        $('.call-buttons').hide();
+        setTimeout(() => {
+          $('.cuscontainer').css('display', 'none');
+        }, 3000);
       },
       "connected":(data)=>{
         //连接成功
