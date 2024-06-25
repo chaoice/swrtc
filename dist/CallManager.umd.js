@@ -11811,6 +11811,11 @@ var __privateMethod = (obj, member, method) => {
             this.hangUp(data, "there");
           }
           this.eventListeners["reject"] && this.eventListeners["reject"](data);
+        } else if (data.type == "answered") {
+          if (this.callIns[data.callerTopic].status != "answered") {
+            this.eventListeners["answered"] && this.eventListeners["answered"](data);
+            delete this.callIns[data.callerTopic];
+          }
         }
       } catch (e) {
         console.error("呼叫引擎处理消息出错", e);
@@ -11931,6 +11936,9 @@ var __privateMethod = (obj, member, method) => {
      * @returns {Promise<void>}
      */
     async answerCall(data) {
+      if (!this.callIns[data.callerTopic]) {
+        return;
+      }
       let remote = new RtcFactory.RTCPeerConnection(this.turnConfig);
       this.remotePcMap[data.callerTopic] = remote;
       let remoteStream = new RtcFactory.MediaStream();
@@ -12005,6 +12013,17 @@ var __privateMethod = (obj, member, method) => {
         }
       }
       this.callIns[data.callerTopic].status = "answered";
+      if (data.calleeTopic == this.clientTopic) {
+        this.mqttClient.publish(
+          this.clientTopic,
+          JSON.stringify({
+            type: "answered",
+            clientTopic: this.clientTopic,
+            callerTopic: data.callerTopic,
+            calleeTopic: data.calleeTopic
+          })
+        );
+      }
       return remote;
     }
     /***
