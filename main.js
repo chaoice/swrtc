@@ -69,14 +69,14 @@ var connect=function(){
         }
     },{
         video:true,
-        // audio: {
-        //     noiseSuppression: true,
-        //     echoCancellation: true,
-        //     autoGainControl: true,
-        //     mozNoiseSuppression: true,
-        //     mozAutoGainControl: true,
-        //     mozEchoCancellation: true
-        // }
+        audio: {
+            noiseSuppression: true,
+            echoCancellation: true,
+            autoGainControl: true,
+            mozNoiseSuppression: true,
+            mozAutoGainControl: true,
+            mozEchoCancellation: true
+        }
     },{
         "offerIn":(data)=>{
             //对方发过来的offer，展示接听界面
@@ -92,30 +92,13 @@ var connect=function(){
         "hangUp":(data)=>{
             //对方拒绝或者挂断
             console.log("hangUp",data);
-            $('.call-status').text('已挂断...');
             $('.call-buttons').hide();
+
+            $('.call-status').text('已挂断...');
             setTimeout(() => {
                 $('.cuscontainer').css('display', 'none');
             }, 3000);
 
-        },
-        "reject":(data)=>{
-            //对方拒绝或者挂断
-            console.log("reject",data);
-            $('.call-status').text('已挂断...');
-            $('.call-buttons').hide();
-            setTimeout(() => {
-                $('.cuscontainer').css('display', 'none');
-            }, 3000);
-        },
-        "answered":(data)=>{
-            //对方拒绝或者挂断
-            console.log("answered",data);
-            $('.call-status').text('其他设备已接听...');
-            $('.call-buttons').hide();
-            setTimeout(() => {
-                $('.cuscontainer').css('display', 'none');
-            }, 3000);
         },
         "localCallStream":(data)=>{
             //本地流，设置播放流
@@ -137,8 +120,26 @@ var connect=function(){
             document.getElementById("remote").srcObject = data.stream;
             console.log("接听时对方流",data);
         },
+        "reject":(data)=>{
+            //对方拒绝或者挂断
+            console.log("reject",data);
+            $('.call-status').text('已挂断...');
+            $('.call-buttons').hide();
+            setTimeout(() => {
+                $('.cuscontainer').css('display', 'none');
+            }, 3000);
+        },
+        "answered":(data)=>{
+            //相同主题的其他设备已接听
+            console.log("answered",data);
+            $('.call-status').text('其他设备已接听...');
+            $('.call-buttons').hide();
+            setTimeout(() => {
+                $('.cuscontainer').css('display', 'none');
+            }, 3000);
+        },
         "connected":(data)=>{
-            //连接成功
+            //webrtc建立连接
             console.log("connected",data);
             $('.call-status').text('正在通话中...');
             $('.call-buttons').show(); //
@@ -146,7 +147,7 @@ var connect=function(){
             $('.decline-call').show();
         },
         "disconnected":(data)=>{
-            //断开连接
+            //webrtc断开连接
             console.log("disconnected",data);
             $('.call-status').text('对方信号不好...');
             setTimeout(() => {
