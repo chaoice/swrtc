@@ -18,7 +18,7 @@ export default defineConfig({
             babelHelpers: 'bundled',
             presets: [['@babel/preset-env', { targets: { browsers: 'defaults, ie >= 11' } }]],
             // 可以通过exclude过滤掉不需要转换的文件
-            exclude: 'node_modules/**',
+            // exclude: 'node_modules/**',
             // 确保Babel可以应用于.ts/.tsx文件
             extensions: ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx']
         })
