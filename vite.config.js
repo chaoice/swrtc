@@ -3,6 +3,9 @@ import path from 'path'
 import {defineConfig} from 'vite'
 import inject from "@rollup/plugin-inject";
 import commonjs from '@rollup/plugin-commonjs';
+import { babel } from '@rollup/plugin-babel';
+
+
 
 export default defineConfig({
     plugins: [
@@ -11,6 +14,14 @@ export default defineConfig({
             jQuery: 'jquery',
         }),
         commonjs(),
+        babel({
+            babelHelpers: 'bundled',
+            presets: [['@babel/preset-env', { targets: { browsers: 'defaults, ie >= 11' } }]],
+            // 可以通过exclude过滤掉不需要转换的文件
+            exclude: 'node_modules/**',
+            // 确保Babel可以应用于.ts/.tsx文件
+            extensions: ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx']
+        })
     ],
     resolve: {
         alias: {

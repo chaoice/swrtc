@@ -2,7 +2,7 @@
   "name": "swrtc",
   "author": "chaoice",
   "email": "215737287@qq.com",
-  "version": "0.0.21",
+  "version": "0.0.23",
   "type": "module",
   "license": "MIT",
   "description": "A WebRTC based communication library for web applications",
@@ -30,6 +30,9 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@babel/core": "^7.24.7",
+    "@babel/preset-env": "^7.24.7",
+    "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-inject": "^5.0.5",
     "sass": "^1.72.0",
@@ -42,6 +45,5 @@
     "jquery": "^3.7.1",
     "mqtt": "^5.5.4",
     "wrtc": "^0.4.7"
-
   }
 }
