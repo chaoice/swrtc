@@ -16,7 +16,7 @@ export default defineConfig({
         commonjs(),
         babel({
             babelHelpers: 'bundled',
-            presets: [['@babel/preset-env', { targets: { browsers: 'defaults, ie >= 11' } }]],
+            presets: [['@babel/preset-env',  { targets: { browsers: 'defaults, ie >= 11' } }]],
             // 可以通过exclude过滤掉不需要转换的文件
             // exclude: 'node_modules/**',
             // 确保Babel可以应用于.ts/.tsx文件
@@ -36,6 +36,7 @@ export default defineConfig({
         minify: false,
         lib: {
             entry: './lib/main.js',
+            // entry: './lib/LegendMain.js',
             name: 'CallManager',
             fileName: (format) => {
                 if(format==="cjs"){
