@@ -43,7 +43,6 @@
     "bootstrap": "^5.3.3",
     "intl-tel-input": "^19.5.7",
     "jquery": "^3.7.1",
-    "mqtt": "^5.5.4",
     "wrtc": "^0.4.7"
   }
 }
