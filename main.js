@@ -24,6 +24,14 @@ $(document).ready(function() {
         //回答对方的流
         callManager.answerCall(currentCall);
     });
+    $('.forward-call').click(function() {
+        $('.call-status').text('已转接');
+        $('.call-buttons').hide(); // 挂断后隐藏按钮
+        setTimeout(() => {
+            $('.cuscontainer').css('display', 'none');
+        },3000)
+        callManager.forwardCall({...currentCall,forwardTopic:document.getElementById('forward-topic').value});
+    });
 
     $('.decline-call').click(function() {
         $('.call-status').text('已挂断');
@@ -99,6 +107,11 @@ var connect=function(){
                 $('.cuscontainer').css('display', 'none');
             }, 3000);
 
+        },
+        "forwardCall":(data)=>{
+            //对方拒绝或者挂断
+            console.log("forward",data);
+            $('.call-status').text('已转接...');
         },
         "localCallStream":(data)=>{
             //本地流，设置播放流

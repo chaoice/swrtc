@@ -85,6 +85,11 @@ let callManager = new CallManager(clientTopic,{
         document.getElementById("local").srcObject = data.stream;
         console.log("打出时本地流",data);
     },
+    "forwardCall":(data)=>{
+        //对方拒绝或者挂断
+        console.log("forward",data);
+        $('.call-status').text('已转接...');
+    },
     "callStream":(data)=>{
         //打电话的时候对方给的流，设置播放流
         document.getElementById("remote").srcObject = data.stream;
@@ -178,9 +183,11 @@ you can pass the following event handlers:
 - disconnected: function to handle the rtc  disconnection
 
 
-### CallManager.makeCall(calleeTopic) call a peer
+### CallManager.makeCall({calleeTopic,callerTopic,clientTopic}) call a peer
 
 - calleeTopic:  topic of the peer to call
+- clientTopic:  topic of the client
+- callerTopic:  topic of the caller
 
 ### CallManager.answerCall(call) answer the call
 - call : the call object to answer
@@ -196,6 +203,12 @@ you can pass the following event handlers:
     callerTopic:'/call/1'#
 ```
 ### CallManager.end() release the resources
+
+### CallManager.forwardCall({calleeTopic,forwardTopic,callerTopic,clientTopic}) forward the call to another peer
+- calleeTopic:  topic of the peer to call
+- clientTopic:  topic of the client
+- callerTopic:  topic of the caller
+- forwardTopic:  topic of the forward peer
 
 ## run the demo
 ```shell
