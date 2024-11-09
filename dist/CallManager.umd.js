@@ -520,9 +520,13 @@
               this.localPcMap[data.calleeTopic].addIceCandidate(candidate);
             }
           } else if (data.type == "answer") {
-            var answer = new RtcFactory.RTCSessionDescription(data.sdp);
-            this.localPcMap[data.calleeTopic].setRemoteDescription(answer);
-            this.callOuts[data.calleeTopic].status = "answered";
+            if (this.localPcMap[data.calleeTopic].remoteDescription == null) {
+              var answer = new RtcFactory.RTCSessionDescription(data.sdp);
+              this.localPcMap[data.calleeTopic].setRemoteDescription(answer);
+              this.callOuts[data.calleeTopic].status = "answered";
+            } else {
+              console.error("answer重复");
+            }
           } else if (data.type == "hangUp") {
             if (this.isRelay(data)) {
               if (data.clientTopic == data.callerTopic) {
@@ -551,6 +555,20 @@
               this.hangUp(data, "there");
             }
             this.eventListeners["reject"] && this.eventListeners["reject"](data);
+          } else if (data.type == "forward") {
+            if (this.isRelay(data)) {
+              if (data.clientTopic == data.callerTopic) {
+                this.forwardCall(data, "there");
+              } else {
+                this.forwardCall(data);
+              }
+              this.forwardCall(_objectSpread2(_objectSpread2({}, data), {}, {
+                callerTopic: this.clientTopic
+              }));
+            } else {
+              this.forwardCall(data, "there");
+            }
+            this.eventListeners["forwardCall"] && this.eventListeners["forwardCall"](data);
           } else if (data.type == "answered") {
             if (this.callIns[data.callerTopic].status != "answered") {
               this.eventListeners["answered"] && this.eventListeners["answered"](data);
@@ -887,6 +905,61 @@
               this.mqttClient.publish(callIn.clientTopic, JSON.stringify({
                 type: callIn.status == "answered" ? "hangUp" : "reject",
                 clientTopic: this.clientTopic,
+                callerTopic: callIn.callerTopic,
+                calleeTopic: callIn.calleeTopic,
+                status: callIn.status,
+                direction: "callOut"
+              }));
+            }
+            delete this.callIns[data.callerTopic];
+            delete this.remotePcMap[data.callerTopic];
+          }
+        }
+      }
+      /***
+       * 转接电话
+       * @param data {callerTopic 呼叫者topic,calleeTopic 被呼叫者topic,clientTopic 当前节点topic,forwardTopic 转接topic}
+       * @package who 挂断类型，there:对面挂断，默认:自己挂断
+       */
+    }, {
+      key: "forwardCall",
+      value: function forwardCall(data, who) {
+        if (data.callerTopic == this.clientTopic) {
+          var callOut = this.callOuts[data.calleeTopic];
+          if (callOut) {
+            this.closeConnection(this.localPcMap[callOut.calleeTopic]);
+            if (who == "there")
+              ;
+            else {
+              this.mqttClient.publish(callOut.targetTopic, JSON.stringify({
+                type: "forward",
+                clientTopic: callOut.clientTopic,
+                callerTopic: callOut.callerTopic,
+                calleeTopic: callOut.calleeTopic,
+                forwardTopic: data.forwardTopic,
+                status: callOut.status,
+                direction: "callIn"
+              }));
+            }
+            delete this.callOuts[data.calleeTopic];
+            delete this.localPcMap[callOut.calleeTopic];
+          }
+          this.makeCall({
+            calleeTopic: data.forwardTopic,
+            callerTopic: data.callerTopic,
+            relayTopic: data.relayTopic
+          });
+        } else {
+          var callIn = this.callIns[data.callerTopic];
+          if (callIn) {
+            this.closeConnection(this.remotePcMap[data.callerTopic]);
+            if (who == "there")
+              ;
+            else {
+              this.mqttClient.publish(callIn.clientTopic, JSON.stringify({
+                type: "forward",
+                clientTopic: this.clientTopic,
+                forwardTopic: data.forwardTopic,
                 callerTopic: callIn.callerTopic,
                 calleeTopic: callIn.calleeTopic,
                 status: callIn.status,
