@@ -498,13 +498,13 @@
           console.log("收到消息", topic, message.toString());
           var data = JSON.parse(message.toString());
           if (data.type == "offer") {
-            this.eventListeners["offerIn"](data);
             this.callIns[data.callerTopic] = {
               callerTopic: data.callerTopic,
               calleeTopic: data.calleeTopic,
               clientTopic: data.clientTopic,
               status: "calling"
             };
+            this.eventListeners["offerIn"](data);
           } else if (data.type == "candidate") {
             var candidate = new RtcFactory.RTCIceCandidate(data.ice);
             if (data.kind == "local") {
