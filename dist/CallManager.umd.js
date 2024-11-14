@@ -695,6 +695,14 @@
                         callerTopic: callerTopic || _this2.clientTopic,
                         calleeTopic
                       });
+                      if (relayTopic && relayTopic == calleeTopic) {
+                        _this2.mqttClient.publish(callerTopic, JSON.stringify({
+                          type: "relayConnected",
+                          callerTopic: callerTopic || _this2.clientTopic,
+                          calleeTopic,
+                          clientTopic: _this2.clientTopic
+                        }));
+                      }
                     }
                   };
                   this.localPcMap[calleeTopic] = local;
