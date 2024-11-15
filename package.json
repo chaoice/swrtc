@@ -2,7 +2,7 @@
   "name": "swrtc",
   "author": "chaoice",
   "email": "215737287@qq.com",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "type": "module",
   "license": "MIT",
   "description": "A WebRTC based communication library for web applications",

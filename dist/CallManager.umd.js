@@ -498,7 +498,7 @@
           console.log("收到消息", topic, message.toString());
           var data = JSON.parse(message.toString());
           if (data.type == "offer") {
-            this.callIns[data.callerTopic] = {
+            this.callIns[data.callerTopic + data.calleeTopic] = {
               callerTopic: data.callerTopic,
               calleeTopic: data.calleeTopic,
               clientTopic: data.clientTopic,
@@ -508,22 +508,22 @@
           } else if (data.type == "candidate") {
             var candidate = new RtcFactory.RTCIceCandidate(data.ice);
             if (data.kind == "local") {
-              if (this.remotePcMap[data.callerTopic] && this.remotePcMap[data.callerTopic].remoteDescription != null) {
-                this.remotePcMap[data.callerTopic].addIceCandidate(candidate);
+              if (this.remotePcMap[data.callerTopic + data.calleeTopic] && this.remotePcMap[data.callerTopic + data.calleeTopic].remoteDescription != null) {
+                this.remotePcMap[data.callerTopic + data.calleeTopic].addIceCandidate(candidate);
               } else {
-                if (!this.remoteIcesMap[data.callerTopic]) {
-                  this.remoteIcesMap[data.callerTopic] = [];
+                if (!this.remoteIcesMap[data.callerTopic + data.calleeTopic]) {
+                  this.remoteIcesMap[data.callerTopic + data.calleeTopic] = [];
                 }
-                this.remoteIcesMap[data.callerTopic].push(candidate);
+                this.remoteIcesMap[data.callerTopic + data.calleeTopic].push(candidate);
               }
             } else {
-              this.localPcMap[data.calleeTopic].addIceCandidate(candidate);
+              this.localPcMap[data.calleeTopic + data.callerTopic].addIceCandidate(candidate);
             }
           } else if (data.type == "answer") {
-            if (this.localPcMap[data.calleeTopic].remoteDescription == null) {
+            if (this.localPcMap[data.calleeTopic + data.callerTopic].remoteDescription == null) {
               var answer = new RtcFactory.RTCSessionDescription(data.sdp);
-              this.localPcMap[data.calleeTopic].setRemoteDescription(answer);
-              this.callOuts[data.calleeTopic].status = "answered";
+              this.localPcMap[data.calleeTopic + data.callerTopic].setRemoteDescription(answer);
+              this.callOuts[data.calleeTopic + data.callerTopic].status = "answered";
             } else {
               console.error("answer重复");
             }
@@ -535,7 +535,8 @@
                 this.hangUp(data);
               }
               this.hangUp(_objectSpread2(_objectSpread2({}, data), {}, {
-                callerTopic: this.clientTopic
+                callerTopic: this.clientTopic,
+                originCallerTopic: data.callerTopic
               }));
             } else {
               this.hangUp(data, "there");
@@ -563,16 +564,17 @@
                 this.forwardCall(data);
               }
               this.forwardCall(_objectSpread2(_objectSpread2({}, data), {}, {
-                callerTopic: this.clientTopic
+                callerTopic: this.clientTopic,
+                originCallerTopic: data.callerTopic
               }));
             } else {
               this.forwardCall(data, "there");
             }
             this.eventListeners["forwardCall"] && this.eventListeners["forwardCall"](data);
           } else if (data.type == "answered") {
-            if (this.callIns[data.callerTopic].status != "answered") {
+            if (this.callIns[data.callerTopic + data.calleeTopic].status != "answered") {
               this.eventListeners["answered"] && this.eventListeners["answered"](data);
-              delete this.callIns[data.callerTopic];
+              delete this.callIns[data.callerTopic + data.calleeTopic];
             }
           }
         } catch (e) {
@@ -673,7 +675,7 @@
                     clientTopic: this.clientTopic,
                     sdp: offer_sdp
                   }));
-                  this.callOuts[calleeTopic] = {
+                  this.callOuts[calleeTopic + (callerTopic || this.clientTopic)] = {
                     callerTopic: callerTopic || this.clientTopic,
                     calleeTopic,
                     clientTopic: this.clientTopic,
@@ -705,7 +707,7 @@
                       }
                     }
                   };
-                  this.localPcMap[calleeTopic] = local;
+                  this.localPcMap[calleeTopic + (callerTopic || this.clientTopic)] = local;
                 case 21:
                 case "end":
                   return _context.stop();
@@ -727,14 +729,14 @@
             while (1)
               switch (_context2.prev = _context2.next) {
                 case 0:
-                  if (this.callIns[data.callerTopic]) {
+                  if (this.callIns[data.callerTopic + data.calleeTopic]) {
                     _context2.next = 2;
                     break;
                   }
                   return _context2.abrupt("return");
                 case 2:
                   remote = new RtcFactory.RTCPeerConnection(this.turnConfig);
-                  this.remotePcMap[data.callerTopic] = remote;
+                  this.remotePcMap[data.callerTopic + data.calleeTopic] = remote;
                   remoteStream = new RtcFactory.MediaStream();
                   remote.ontrack = function(e) {
                     console.log("onaddtrack", e);
@@ -799,12 +801,12 @@
                     calleeTopic: data.calleeTopic,
                     sdp: answer
                   }));
-                  if (this.remoteIcesMap[data.callerTopic]) {
-                    for (i = 0; i < this.remoteIcesMap[data.callerTopic].length; i++) {
-                      remote.addIceCandidate(this.remoteIcesMap[data.callerTopic][i]);
+                  if (this.remoteIcesMap[data.callerTopic + data.calleeTopic]) {
+                    for (i = 0; i < this.remoteIcesMap[data.callerTopic + data.calleeTopic].length; i++) {
+                      remote.addIceCandidate(this.remoteIcesMap[data.callerTopic + data.calleeTopic][i]);
                     }
                   }
-                  this.callIns[data.callerTopic].status = "answered";
+                  this.callIns[data.callerTopic + data.calleeTopic].status = "answered";
                   if (data.calleeTopic == this.clientTopic) {
                     this.mqttClient.publish(this.clientTopic, JSON.stringify({
                       type: "answered",
@@ -851,29 +853,29 @@
     }, {
       key: "huangUpAll",
       value: function huangUpAll(data) {
-        var callOut = this.callOuts[data.calleeTopic];
+        var callOut = this.callOuts[data.calleeTopic + data.callerTopic];
         if (callOut) {
-          this.closeConnection(this.localPcMap[callOut.calleeTopic]);
+          this.closeConnection(this.localPcMap[callOut.calleeTopic + callOut.callerTopic]);
           this.mqttClient.publish(callOut.targetTopic, JSON.stringify({
             type: "hangUp",
             clientTopic: callOut.clientTopic,
             callerTopic: callOut.callerTopic,
             calleeTopic: callOut.calleeTopic
           }));
-          delete this.callOuts[data.calleeTopic];
-          delete this.localPcMap[callOut.calleeTopic];
+          delete this.callOuts[data.calleeTopic + data.callerTopic];
+          delete this.localPcMap[callOut.calleeTopic + callOut.callerTopic];
         }
-        var callIn = this.callIns[data.callerTopic];
+        var callIn = this.callIns[data.callerTopic + data.calleeTopic];
         if (callIn) {
-          this.closeConnection(this.remotePcMap[data.callerTopic]);
+          this.closeConnection(this.remotePcMap[data.callerTopic + data.calleeTopic]);
           this.mqttClient.publish(callIn.clientTopic, JSON.stringify({
             type: "hangUp",
             clientTopic: this.clientTopic,
             callerTopic: callIn.callerTopic,
             calleeTopic: callIn.calleeTopic
           }));
-          delete this.callIns[data.callerTopic];
-          delete this.remotePcMap[data.callerTopic];
+          delete this.callIns[data.callerTopic + data.calleeTopic];
+          delete this.remotePcMap[data.callerTopic + data.calleeTopic];
         }
       }
       /***
@@ -884,10 +886,11 @@
     }, {
       key: "hangUp",
       value: function hangUp(data, who) {
+        var originCallerTopic = data.originCallerTopic || data.callerTopic;
         if (data.callerTopic == this.clientTopic) {
-          var callOut = this.callOuts[data.calleeTopic];
+          var callOut = this.callOuts[data.calleeTopic + originCallerTopic];
           if (callOut) {
-            this.closeConnection(this.localPcMap[callOut.calleeTopic]);
+            this.closeConnection(this.localPcMap[callOut.calleeTopic + originCallerTopic]);
             if (who == "there")
               ;
             else {
@@ -900,13 +903,13 @@
                 direction: "callIn"
               }));
             }
-            delete this.callOuts[data.calleeTopic];
-            delete this.localPcMap[callOut.calleeTopic];
+            delete this.callOuts[data.calleeTopic + originCallerTopic];
+            delete this.localPcMap[callOut.calleeTopic + originCallerTopic];
           }
         } else {
-          var callIn = this.callIns[data.callerTopic];
+          var callIn = this.callIns[originCallerTopic + data.calleeTopic];
           if (callIn) {
-            this.closeConnection(this.remotePcMap[data.callerTopic]);
+            this.closeConnection(this.remotePcMap[originCallerTopic + data.calleeTopic]);
             if (who == "there")
               ;
             else {
@@ -919,8 +922,8 @@
                 direction: "callOut"
               }));
             }
-            delete this.callIns[data.callerTopic];
-            delete this.remotePcMap[data.callerTopic];
+            delete this.callIns[originCallerTopic + data.calleeTopic];
+            delete this.remotePcMap[originCallerTopic + data.calleeTopic];
           }
         }
       }
@@ -932,10 +935,11 @@
     }, {
       key: "forwardCall",
       value: function forwardCall(data, who) {
+        var originCallerTopic = data.originCallerTopic || data.callerTopic;
         if (data.callerTopic == this.clientTopic) {
-          var callOut = this.callOuts[data.calleeTopic];
+          var callOut = this.callOuts[data.calleeTopic + originCallerTopic];
           if (callOut) {
-            this.closeConnection(this.localPcMap[callOut.calleeTopic]);
+            this.closeConnection(this.localPcMap[callOut.calleeTopic + callOut.callerTopic]);
             if (who == "there")
               ;
             else {
@@ -949,8 +953,8 @@
                 direction: "callIn"
               }));
             }
-            delete this.callOuts[data.calleeTopic];
-            delete this.localPcMap[callOut.calleeTopic];
+            delete this.callOuts[data.calleeTopic + originCallerTopic];
+            delete this.localPcMap[callOut.calleeTopic + callOut.callerTopic];
           }
           this.makeCall({
             calleeTopic: data.forwardTopic,
@@ -958,9 +962,9 @@
             relayTopic: data.relayTopic
           });
         } else {
-          var callIn = this.callIns[data.callerTopic];
+          var callIn = this.callIns[originCallerTopic + data.calleeTopic];
           if (callIn) {
-            this.closeConnection(this.remotePcMap[data.callerTopic]);
+            this.closeConnection(this.remotePcMap[originCallerTopic + data.calleeTopic]);
             if (who == "there")
               ;
             else {
@@ -974,8 +978,8 @@
                 direction: "callOut"
               }));
             }
-            delete this.callIns[data.callerTopic];
-            delete this.remotePcMap[data.callerTopic];
+            delete this.callIns[originCallerTopic + data.calleeTopic];
+            delete this.remotePcMap[originCallerTopic + data.calleeTopic];
           }
         }
       }
