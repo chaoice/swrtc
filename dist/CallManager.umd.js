@@ -26,8 +26,7 @@
     };
   }
   function _classCallCheck(a, n) {
-    if (!(a instanceof n))
-      throw new TypeError("Cannot call a class as a function");
+    if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function");
   }
   function _defineProperties(e, r) {
     for (var t = 0; t < r.length; t++) {
@@ -164,11 +163,9 @@
     function makeInvokeMethod(e2, r2, n2) {
       var o2 = h;
       return function(i2, a2) {
-        if (o2 === f)
-          throw Error("Generator is already running");
+        if (o2 === f) throw Error("Generator is already running");
         if (o2 === s) {
-          if ("throw" === i2)
-            throw a2;
+          if ("throw" === i2) throw a2;
           return {
             value: t,
             done: true
@@ -179,24 +176,19 @@
           if (c2) {
             var u2 = maybeInvokeDelegate(c2, n2);
             if (u2) {
-              if (u2 === y)
-                continue;
+              if (u2 === y) continue;
               return u2;
             }
           }
-          if ("next" === n2.method)
-            n2.sent = n2._sent = n2.arg;
+          if ("next" === n2.method) n2.sent = n2._sent = n2.arg;
           else if ("throw" === n2.method) {
-            if (o2 === h)
-              throw o2 = s, n2.arg;
+            if (o2 === h) throw o2 = s, n2.arg;
             n2.dispatchException(n2.arg);
-          } else
-            "return" === n2.method && n2.abrupt("return", n2.arg);
+          } else "return" === n2.method && n2.abrupt("return", n2.arg);
           o2 = f;
           var p2 = tryCatch(e2, r2, n2);
           if ("normal" === p2.type) {
-            if (o2 = n2.done ? s : l, p2.arg === y)
-              continue;
+            if (o2 = n2.done ? s : l, p2.arg === y) continue;
             return {
               value: p2.arg,
               done: n2.done
@@ -208,11 +200,9 @@
     }
     function maybeInvokeDelegate(e2, r2) {
       var n2 = r2.method, o2 = e2.iterator[n2];
-      if (o2 === t)
-        return r2.delegate = null, "throw" === n2 && e2.iterator.return && (r2.method = "return", r2.arg = t, maybeInvokeDelegate(e2, r2), "throw" === r2.method) || "return" !== n2 && (r2.method = "throw", r2.arg = new TypeError("The iterator does not provide a '" + n2 + "' method")), y;
+      if (o2 === t) return r2.delegate = null, "throw" === n2 && e2.iterator.return && (r2.method = "return", r2.arg = t, maybeInvokeDelegate(e2, r2), "throw" === r2.method) || "return" !== n2 && (r2.method = "throw", r2.arg = new TypeError("The iterator does not provide a '" + n2 + "' method")), y;
       var i2 = tryCatch(o2, e2.iterator, r2.arg);
-      if ("throw" === i2.type)
-        return r2.method = "throw", r2.arg = i2.arg, r2.delegate = null, y;
+      if ("throw" === i2.type) return r2.method = "throw", r2.arg = i2.arg, r2.delegate = null, y;
       var a2 = i2.arg;
       return a2 ? a2.done ? (r2[e2.resultName] = a2.value, r2.next = e2.nextLoc, "return" !== r2.method && (r2.method = "next", r2.arg = t), r2.delegate = null, y) : a2 : (r2.method = "throw", r2.arg = new TypeError("iterator result is not an object"), r2.delegate = null, y);
     }
@@ -234,15 +224,11 @@
     function values(e2) {
       if (e2 || "" === e2) {
         var r2 = e2[a];
-        if (r2)
-          return r2.call(e2);
-        if ("function" == typeof e2.next)
-          return e2;
+        if (r2) return r2.call(e2);
+        if ("function" == typeof e2.next) return e2;
         if (!isNaN(e2.length)) {
           var o2 = -1, i2 = function next() {
-            for (; ++o2 < e2.length; )
-              if (n.call(e2, o2))
-                return next.value = e2[o2], next.done = false, next;
+            for (; ++o2 < e2.length; ) if (n.call(e2, o2)) return next.value = e2[o2], next.done = false, next;
             return next.value = t, next.done = true, next;
           };
           return i2.next = i2;
@@ -279,56 +265,44 @@
       return "[object Generator]";
     }), e.keys = function(t2) {
       var e2 = Object(t2), r2 = [];
-      for (var n2 in e2)
-        r2.push(n2);
+      for (var n2 in e2) r2.push(n2);
       return r2.reverse(), function next() {
         for (; r2.length; ) {
           var t3 = r2.pop();
-          if (t3 in e2)
-            return next.value = t3, next.done = false, next;
+          if (t3 in e2) return next.value = t3, next.done = false, next;
         }
         return next.done = true, next;
       };
     }, e.values = values, Context.prototype = {
       constructor: Context,
       reset: function(e2) {
-        if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = false, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e2)
-          for (var r2 in this)
-            "t" === r2.charAt(0) && n.call(this, r2) && !isNaN(+r2.slice(1)) && (this[r2] = t);
+        if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = false, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e2) for (var r2 in this) "t" === r2.charAt(0) && n.call(this, r2) && !isNaN(+r2.slice(1)) && (this[r2] = t);
       },
       stop: function() {
         this.done = true;
         var t2 = this.tryEntries[0].completion;
-        if ("throw" === t2.type)
-          throw t2.arg;
+        if ("throw" === t2.type) throw t2.arg;
         return this.rval;
       },
       dispatchException: function(e2) {
-        if (this.done)
-          throw e2;
+        if (this.done) throw e2;
         var r2 = this;
         function handle(n2, o3) {
           return a2.type = "throw", a2.arg = e2, r2.next = n2, o3 && (r2.method = "next", r2.arg = t), !!o3;
         }
         for (var o2 = this.tryEntries.length - 1; o2 >= 0; --o2) {
           var i2 = this.tryEntries[o2], a2 = i2.completion;
-          if ("root" === i2.tryLoc)
-            return handle("end");
+          if ("root" === i2.tryLoc) return handle("end");
           if (i2.tryLoc <= this.prev) {
             var c2 = n.call(i2, "catchLoc"), u2 = n.call(i2, "finallyLoc");
             if (c2 && u2) {
-              if (this.prev < i2.catchLoc)
-                return handle(i2.catchLoc, true);
-              if (this.prev < i2.finallyLoc)
-                return handle(i2.finallyLoc);
+              if (this.prev < i2.catchLoc) return handle(i2.catchLoc, true);
+              if (this.prev < i2.finallyLoc) return handle(i2.finallyLoc);
             } else if (c2) {
-              if (this.prev < i2.catchLoc)
-                return handle(i2.catchLoc, true);
+              if (this.prev < i2.catchLoc) return handle(i2.catchLoc, true);
             } else {
-              if (!u2)
-                throw Error("try statement without catch or finally");
-              if (this.prev < i2.finallyLoc)
-                return handle(i2.finallyLoc);
+              if (!u2) throw Error("try statement without catch or finally");
+              if (this.prev < i2.finallyLoc) return handle(i2.finallyLoc);
             }
           }
         }
@@ -346,15 +320,13 @@
         return a2.type = t2, a2.arg = e2, i2 ? (this.method = "next", this.next = i2.finallyLoc, y) : this.complete(a2);
       },
       complete: function(t2, e2) {
-        if ("throw" === t2.type)
-          throw t2.arg;
+        if ("throw" === t2.type) throw t2.arg;
         return "break" === t2.type || "continue" === t2.type ? this.next = t2.arg : "return" === t2.type ? (this.rval = this.arg = t2.arg, this.method = "return", this.next = "end") : "normal" === t2.type && e2 && (this.next = e2), y;
       },
       finish: function(t2) {
         for (var e2 = this.tryEntries.length - 1; e2 >= 0; --e2) {
           var r2 = this.tryEntries[e2];
-          if (r2.finallyLoc === t2)
-            return this.complete(r2.completion, r2.afterLoc), resetTryEntry(r2), y;
+          if (r2.finallyLoc === t2) return this.complete(r2.completion, r2.afterLoc), resetTryEntry(r2), y;
         }
       },
       catch: function(t2) {
@@ -381,16 +353,14 @@
     }, e;
   }
   function _toPrimitive(t, r) {
-    if ("object" != typeof t || !t)
-      return t;
+    if ("object" != typeof t || !t) return t;
     var e = t[Symbol.toPrimitive];
     if (void 0 !== e) {
-      var i = e.call(t, r || "default");
-      if ("object" != typeof i)
-        return i;
+      var i = e.call(t, r);
+      if ("object" != typeof i) return i;
       throw new TypeError("@@toPrimitive must return a primitive value.");
     }
-    return ("string" === r ? String : Number)(t);
+    return String(t);
   }
   function _toPropertyKey(t) {
     var i = _toPrimitive(t, "string");
@@ -401,7 +371,7 @@
       return {};
     };
   }
-  var wrtc = require("wrtc");
+  var wrtc = require("@roamhq/wrtc");
   function getRuntimeEnv() {
     if (typeof window != "undefined") {
       return "web";
@@ -480,6 +450,9 @@
           credential: "123456"
         }]
       };
+      this.localStreamMap = {};
+      this.remoteStreamMap = {};
+      this.answerStreamMap = {};
     }
     return _createClass(CallManager2, [{
       key: "isRelay",
@@ -579,6 +552,7 @@
           }
         } catch (e) {
           console.error("呼叫引擎处理消息出错", e);
+          console.error(message.toString());
         }
       }
       /***
@@ -608,110 +582,113 @@
       value: function() {
         var _makeCall = _asyncToGenerator(/* @__PURE__ */ _regeneratorRuntime().mark(function _callee(_ref) {
           var _this2 = this;
-          var calleeTopic, relayTopic, callerTopic, relayStream, local, stream, localStream, offer_sdp;
+          var calleeTopic, relayTopic, callerTopic, relayStream, local, stream, streamKey, localStream, offer_sdp;
           return _regeneratorRuntime().wrap(function _callee$(_context) {
-            while (1)
-              switch (_context.prev = _context.next) {
-                case 0:
-                  calleeTopic = _ref.calleeTopic, relayTopic = _ref.relayTopic, callerTopic = _ref.callerTopic, relayStream = _ref.relayStream;
-                  local = new RtcFactory.RTCPeerConnection(this.turnConfig);
-                  _context.t0 = relayStream;
-                  if (_context.t0) {
-                    _context.next = 7;
-                    break;
+            while (1) switch (_context.prev = _context.next) {
+              case 0:
+                calleeTopic = _ref.calleeTopic, relayTopic = _ref.relayTopic, callerTopic = _ref.callerTopic, relayStream = _ref.relayStream;
+                local = new RtcFactory.RTCPeerConnection(this.turnConfig);
+                _context.t0 = relayStream;
+                if (_context.t0) {
+                  _context.next = 7;
+                  break;
+                }
+                _context.next = 6;
+                return RtcFactory.getUserMedia(this.constraints);
+              case 6:
+                _context.t0 = _context.sent;
+              case 7:
+                stream = _context.t0;
+                streamKey = calleeTopic + (callerTopic || this.clientTopic);
+                this.localStreamMap[streamKey] = stream;
+                stream.getTracks().forEach(function(track) {
+                  return local.addTrack(track);
+                });
+                this.eventListeners["localCallStream"] && this.eventListeners["localCallStream"]({
+                  pc: local,
+                  stream,
+                  callerTopic,
+                  calleeTopic
+                });
+                localStream = new RtcFactory.MediaStream();
+                this.remoteStreamMap[streamKey] = localStream;
+                local.ontrack = function(event) {
+                  console.log("onaddtrack", event);
+                  localStream.addTrack(event.track);
+                  setTimeout(function() {
+                    _this2.eventListeners["callStream"]({
+                      pc: local,
+                      stream: localStream,
+                      callerTopic,
+                      calleeTopic
+                    });
+                  }, 200);
+                };
+                local.onicecandidate = function(e) {
+                  var iceCandidate = e.candidate;
+                  if (iceCandidate) {
+                    _this2.mqttClient.publish(relayTopic || calleeTopic, JSON.stringify({
+                      type: "candidate",
+                      kind: "local",
+                      callerTopic: callerTopic || _this2.clientTopic,
+                      calleeTopic,
+                      clientTopic: _this2.clientTopic,
+                      ice: iceCandidate
+                    }));
                   }
-                  _context.next = 6;
-                  return RtcFactory.getUserMedia(this.constraints);
-                case 6:
-                  _context.t0 = _context.sent;
-                case 7:
-                  stream = _context.t0;
-                  stream.getTracks().forEach(function(track) {
-                    return local.addTrack(track);
-                  });
-                  this.eventListeners["localCallStream"] && this.eventListeners["localCallStream"]({
-                    pc: local,
-                    stream,
-                    callerTopic,
-                    calleeTopic
-                  });
-                  localStream = new RtcFactory.MediaStream();
-                  local.ontrack = function(event) {
-                    console.log("onaddtrack", event);
-                    localStream.addTrack(event.track);
-                    setTimeout(function() {
-                      _this2.eventListeners["callStream"]({
-                        pc: local,
-                        stream: localStream,
-                        callerTopic,
-                        calleeTopic
-                      });
-                    }, 200);
-                  };
-                  local.onicecandidate = function(e) {
-                    var iceCandidate = e.candidate;
-                    if (iceCandidate) {
-                      _this2.mqttClient.publish(relayTopic || calleeTopic, JSON.stringify({
-                        type: "candidate",
-                        kind: "local",
+                };
+                _context.next = 18;
+                return local.createOffer({
+                  offerOptions: 1
+                });
+              case 18:
+                offer_sdp = _context.sent;
+                local.setLocalDescription(offer_sdp);
+                this.localPcMap[calleeTopic + (callerTopic || this.clientTopic)] = local;
+                console.log("setlocalpcMap" + calleeTopic + (callerTopic || this.clientTopic));
+                this.mqttClient.publish(relayTopic || calleeTopic, JSON.stringify({
+                  type: "offer",
+                  callerTopic: callerTopic || this.clientTopic,
+                  calleeTopic,
+                  clientTopic: this.clientTopic,
+                  sdp: offer_sdp
+                }));
+                this.callOuts[calleeTopic + (callerTopic || this.clientTopic)] = {
+                  callerTopic: callerTopic || this.clientTopic,
+                  calleeTopic,
+                  clientTopic: this.clientTopic,
+                  targetTopic: relayTopic || calleeTopic,
+                  status: "calling"
+                };
+                local.oniceconnectionstatechange = function() {
+                  console.log("local ice:", local.iceConnectionState);
+                  if (local.iceConnectionState === "failed" || local.iceConnectionState === "disconnected") {
+                    _this2.closeConnection(local);
+                    _this2.eventListeners["disconnected"] && _this2.eventListeners["disconnected"]({
+                      clientTopic: _this2.clientTopic,
+                      callerTopic: callerTopic || _this2.clientTopic,
+                      calleeTopic
+                    });
+                  } else if (local.iceConnectionState === "connected") {
+                    _this2.eventListeners["connected"] && _this2.eventListeners["connected"]({
+                      clientTopic: _this2.clientTopic,
+                      callerTopic: callerTopic || _this2.clientTopic,
+                      calleeTopic
+                    });
+                    if (relayTopic && relayTopic == calleeTopic) {
+                      _this2.mqttClient.publish(callerTopic, JSON.stringify({
+                        type: "relayConnected",
                         callerTopic: callerTopic || _this2.clientTopic,
                         calleeTopic,
-                        clientTopic: _this2.clientTopic,
-                        ice: iceCandidate
+                        clientTopic: _this2.clientTopic
                       }));
                     }
-                  };
-                  _context.next = 15;
-                  return local.createOffer({
-                    offerOptions: 1
-                  });
-                case 15:
-                  offer_sdp = _context.sent;
-                  local.setLocalDescription(offer_sdp);
-                  this.mqttClient.publish(relayTopic || calleeTopic, JSON.stringify({
-                    type: "offer",
-                    callerTopic: callerTopic || this.clientTopic,
-                    calleeTopic,
-                    clientTopic: this.clientTopic,
-                    sdp: offer_sdp
-                  }));
-                  this.callOuts[calleeTopic + (callerTopic || this.clientTopic)] = {
-                    callerTopic: callerTopic || this.clientTopic,
-                    calleeTopic,
-                    clientTopic: this.clientTopic,
-                    targetTopic: relayTopic || calleeTopic,
-                    status: "calling"
-                  };
-                  local.oniceconnectionstatechange = function() {
-                    console.log("local ice:", local.iceConnectionState);
-                    if (local.iceConnectionState === "failed" || local.iceConnectionState === "disconnected") {
-                      _this2.closeConnection(local);
-                      _this2.eventListeners["disconnected"] && _this2.eventListeners["disconnected"]({
-                        clientTopic: _this2.clientTopic,
-                        callerTopic: callerTopic || _this2.clientTopic,
-                        calleeTopic
-                      });
-                    } else if (local.iceConnectionState === "connected") {
-                      _this2.eventListeners["connected"] && _this2.eventListeners["connected"]({
-                        clientTopic: _this2.clientTopic,
-                        callerTopic: callerTopic || _this2.clientTopic,
-                        calleeTopic
-                      });
-                      if (relayTopic && relayTopic == calleeTopic) {
-                        _this2.mqttClient.publish(callerTopic, JSON.stringify({
-                          type: "relayConnected",
-                          callerTopic: callerTopic || _this2.clientTopic,
-                          calleeTopic,
-                          clientTopic: _this2.clientTopic
-                        }));
-                      }
-                    }
-                  };
-                  this.localPcMap[calleeTopic + (callerTopic || this.clientTopic)] = local;
-                case 21:
-                case "end":
-                  return _context.stop();
-              }
+                  }
+                };
+              case 25:
+              case "end":
+                return _context.stop();
+            }
           }, _callee, this);
         }));
         function makeCall(_x) {
@@ -724,102 +701,104 @@
       value: function() {
         var _answerCall = _asyncToGenerator(/* @__PURE__ */ _regeneratorRuntime().mark(function _callee2(data) {
           var _this3 = this;
-          var remote, remoteStream, stream, offer, answer, i;
+          var remote, remoteStream, streamKey, stream, offer, answer, i;
           return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-            while (1)
-              switch (_context2.prev = _context2.next) {
-                case 0:
-                  if (this.callIns[data.callerTopic + data.calleeTopic]) {
-                    _context2.next = 2;
-                    break;
+            while (1) switch (_context2.prev = _context2.next) {
+              case 0:
+                if (this.callIns[data.callerTopic + data.calleeTopic]) {
+                  _context2.next = 2;
+                  break;
+                }
+                return _context2.abrupt("return");
+              case 2:
+                remote = new RtcFactory.RTCPeerConnection(this.turnConfig);
+                this.remotePcMap[data.callerTopic + data.calleeTopic] = remote;
+                remoteStream = new RtcFactory.MediaStream();
+                streamKey = data.callerTopic + data.calleeTopic;
+                this.remoteStreamMap[streamKey] = remoteStream;
+                remote.ontrack = function(e) {
+                  console.log("onaddtrack", e);
+                  remoteStream.addTrack(e.track);
+                  setTimeout(function() {
+                    _this3.eventListeners["answerStream"](_objectSpread2({
+                      pc: remote,
+                      stream: remoteStream
+                    }, data));
+                  }, 200);
+                };
+                remote.oniceconnectionstatechange = function() {
+                  console.log("remote ice:", remote.iceConnectionState);
+                  if (remote.iceConnectionState === "failed" || remote.iceConnectionState === "disconnected") {
+                    _this3.closeConnection(remote);
+                    _this3.eventListeners["disconnected"] && _this3.eventListeners["disconnected"](_objectSpread2({
+                      clientTopic: data.clientTopic
+                    }, data));
+                  } else if (remote.iceConnectionState === "connected") {
+                    _this3.eventListeners["connected"] && _this3.eventListeners["connected"](_objectSpread2({
+                      clientTopic: data.clientTopic
+                    }, data));
                   }
-                  return _context2.abrupt("return");
-                case 2:
-                  remote = new RtcFactory.RTCPeerConnection(this.turnConfig);
-                  this.remotePcMap[data.callerTopic + data.calleeTopic] = remote;
-                  remoteStream = new RtcFactory.MediaStream();
-                  remote.ontrack = function(e) {
-                    console.log("onaddtrack", e);
-                    remoteStream.addTrack(e.track);
-                    setTimeout(function() {
-                      _this3.eventListeners["answerStream"](_objectSpread2({
-                        pc: remote,
-                        stream: remoteStream
-                      }, data));
-                    }, 200);
-                  };
-                  remote.oniceconnectionstatechange = function() {
-                    console.log("remote ice:", remote.iceConnectionState);
-                    if (remote.iceConnectionState === "failed" || remote.iceConnectionState === "disconnected") {
-                      _this3.closeConnection(remote);
-                      _this3.eventListeners["disconnected"] && _this3.eventListeners["disconnected"](_objectSpread2({
-                        clientTopic: data.clientTopic
-                      }, data));
-                    } else if (remote.iceConnectionState === "connected") {
-                      _this3.eventListeners["connected"] && _this3.eventListeners["connected"](_objectSpread2({
-                        clientTopic: data.clientTopic
-                      }, data));
-                    }
-                  };
-                  _context2.next = 9;
-                  return RtcFactory.getUserMedia(this.constraints);
-                case 9:
-                  stream = _context2.sent;
-                  stream.getTracks().forEach(function(track) {
-                    return remote.addTrack(track);
-                  });
-                  this.eventListeners["localAnswerStream"] && this.eventListeners["localAnswerStream"](_objectSpread2({
-                    pc: remote,
-                    stream
-                  }, data));
-                  remote.onicecandidate = function(e) {
-                    var iceCandidate = e.candidate;
-                    console.log("remote ice:", iceCandidate);
-                    if (iceCandidate != null) {
-                      _this3.mqttClient.publish(data.clientTopic, JSON.stringify({
-                        type: "candidate",
-                        clientTopic: _this3.clientTopic,
-                        calleeTopic: data.calleeTopic,
-                        callerTopic: data.callerTopic,
-                        kind: "remote",
-                        ice: iceCandidate
-                      }));
-                    }
-                  };
-                  offer = new RtcFactory.RTCSessionDescription(data.sdp);
-                  remote.setRemoteDescription(offer);
-                  _context2.next = 17;
-                  return remote.createAnswer();
-                case 17:
-                  answer = _context2.sent;
-                  console.log("createAnswer", answer);
-                  remote.setLocalDescription(answer);
-                  this.mqttClient.publish(data.clientTopic, JSON.stringify({
-                    type: "answer",
-                    clientTopic: this.clientTopic,
-                    callerTopic: data.callerTopic,
-                    calleeTopic: data.calleeTopic,
-                    sdp: answer
-                  }));
-                  if (this.remoteIcesMap[data.callerTopic + data.calleeTopic]) {
-                    for (i = 0; i < this.remoteIcesMap[data.callerTopic + data.calleeTopic].length; i++) {
-                      remote.addIceCandidate(this.remoteIcesMap[data.callerTopic + data.calleeTopic][i]);
-                    }
-                  }
-                  this.callIns[data.callerTopic + data.calleeTopic].status = "answered";
-                  if (data.calleeTopic == this.clientTopic) {
-                    this.mqttClient.publish(this.clientTopic, JSON.stringify({
-                      type: "answered",
-                      clientTopic: this.clientTopic,
+                };
+                _context2.next = 11;
+                return RtcFactory.getUserMedia(this.constraints);
+              case 11:
+                stream = _context2.sent;
+                this.answerStreamMap[streamKey] = stream;
+                stream.getTracks().forEach(function(track) {
+                  return remote.addTrack(track);
+                });
+                this.eventListeners["localAnswerStream"] && this.eventListeners["localAnswerStream"](_objectSpread2({
+                  pc: remote,
+                  stream
+                }, data));
+                remote.onicecandidate = function(e) {
+                  var iceCandidate = e.candidate;
+                  console.log("remote ice:", iceCandidate);
+                  if (iceCandidate != null) {
+                    _this3.mqttClient.publish(data.clientTopic, JSON.stringify({
+                      type: "candidate",
+                      clientTopic: _this3.clientTopic,
+                      calleeTopic: data.calleeTopic,
                       callerTopic: data.callerTopic,
-                      calleeTopic: data.calleeTopic
+                      kind: "remote",
+                      ice: iceCandidate
                     }));
                   }
-                  return _context2.abrupt("return", remote);
-                case 25:
-                case "end":
-                  return _context2.stop();
-              }
+                };
+                offer = new RtcFactory.RTCSessionDescription(data.sdp);
+                remote.setRemoteDescription(offer);
+                _context2.next = 20;
+                return remote.createAnswer();
+              case 20:
+                answer = _context2.sent;
+                console.log("createAnswer", answer);
+                remote.setLocalDescription(answer);
+                this.mqttClient.publish(data.clientTopic, JSON.stringify({
+                  type: "answer",
+                  clientTopic: this.clientTopic,
+                  callerTopic: data.callerTopic,
+                  calleeTopic: data.calleeTopic,
+                  sdp: answer
+                }));
+                if (this.remoteIcesMap[data.callerTopic + data.calleeTopic]) {
+                  for (i = 0; i < this.remoteIcesMap[data.callerTopic + data.calleeTopic].length; i++) {
+                    remote.addIceCandidate(this.remoteIcesMap[data.callerTopic + data.calleeTopic][i]);
+                  }
+                }
+                this.callIns[data.callerTopic + data.calleeTopic].status = "answered";
+                if (data.calleeTopic == this.clientTopic) {
+                  this.mqttClient.publish(this.clientTopic, JSON.stringify({
+                    type: "answered",
+                    clientTopic: this.clientTopic,
+                    callerTopic: data.callerTopic,
+                    calleeTopic: data.calleeTopic
+                  }));
+                }
+                return _context2.abrupt("return", remote);
+              case 28:
+              case "end":
+                return _context2.stop();
+            }
           }, _callee2, this);
         }));
         function answerCall(_x2) {
@@ -833,21 +812,35 @@
         if (rtcPeerConnection != null) {
           try {
             rtcPeerConnection.getSenders().forEach(function(sender) {
-              sender.track.stop();
+              if (sender.track) {
+                sender.track.stop();
+              }
+            });
+            rtcPeerConnection.getReceivers().forEach(function(receiver) {
+              if (receiver.track) {
+                receiver.track.stop();
+              }
             });
             rtcPeerConnection.getTransceivers().forEach(function(transceiver) {
               if (transceiver.sender) {
                 transceiver.sender.replaceTrack(null);
+                if (transceiver.sender.track) {
+                  transceiver.sender.track.stop();
+                }
               }
               if (transceiver.receiver) {
-                transceiver.receiver.track.stop();
+                if (transceiver.receiver.track) {
+                  transceiver.receiver.track.stop();
+                }
+              }
+              if (transceiver.stop) {
+                transceiver.stop();
               }
             });
+            rtcPeerConnection.close();
           } catch (e) {
             console.error("关闭连接失败", e);
           }
-          rtcPeerConnection.close();
-          rtcPeerConnection = null;
         }
       }
     }, {
@@ -891,8 +884,8 @@
           var callOut = this.callOuts[data.calleeTopic + originCallerTopic];
           if (callOut) {
             this.closeConnection(this.localPcMap[callOut.calleeTopic + originCallerTopic]);
-            if (who == "there")
-              ;
+            this.cleanupMediaStreams(data.calleeTopic + originCallerTopic);
+            if (who == "there") ;
             else {
               this.mqttClient.publish(callOut.targetTopic, JSON.stringify({
                 type: callOut.status == "answered" ? "hangUp" : "reject",
@@ -910,8 +903,8 @@
           var callIn = this.callIns[originCallerTopic + data.calleeTopic];
           if (callIn) {
             this.closeConnection(this.remotePcMap[originCallerTopic + data.calleeTopic]);
-            if (who == "there")
-              ;
+            this.cleanupMediaStreams(originCallerTopic + data.calleeTopic);
+            if (who == "there") ;
             else {
               this.mqttClient.publish(callIn.clientTopic, JSON.stringify({
                 type: callIn.status == "answered" ? "hangUp" : "reject",
@@ -940,8 +933,8 @@
           var callOut = this.callOuts[data.calleeTopic + originCallerTopic];
           if (callOut) {
             this.closeConnection(this.localPcMap[callOut.calleeTopic + callOut.callerTopic]);
-            if (who == "there")
-              ;
+            this.cleanupMediaStreams(data.calleeTopic + originCallerTopic);
+            if (who == "there") ;
             else {
               this.mqttClient.publish(callOut.targetTopic, JSON.stringify({
                 type: "forward",
@@ -965,8 +958,8 @@
           var callIn = this.callIns[originCallerTopic + data.calleeTopic];
           if (callIn) {
             this.closeConnection(this.remotePcMap[originCallerTopic + data.calleeTopic]);
-            if (who == "there")
-              ;
+            this.cleanupMediaStreams(originCallerTopic + data.calleeTopic);
+            if (who == "there") ;
             else {
               this.mqttClient.publish(callIn.clientTopic, JSON.stringify({
                 type: "forward",
@@ -990,11 +983,56 @@
       key: "end",
       value: function end() {
         this.mqttClient.end();
+        this.cleanupMediaStreams();
         for (var key in this.localPcMap) {
           this.closeConnection(this.localPcMap[key]);
         }
         for (var _key in this.remotePcMap) {
           this.closeConnection(this.remotePcMap[_key]);
+        }
+      }
+    }, {
+      key: "cleanupMediaStreams",
+      value: function cleanupMediaStreams(streamKey) {
+        var _this4 = this;
+        if (streamKey) {
+          if (this.localStreamMap[streamKey]) {
+            this.localStreamMap[streamKey].getTracks().forEach(function(track) {
+              track.stop();
+            });
+            delete this.localStreamMap[streamKey];
+          }
+          if (this.remoteStreamMap[streamKey]) {
+            this.remoteStreamMap[streamKey].getTracks().forEach(function(track) {
+              track.stop();
+            });
+            delete this.remoteStreamMap[streamKey];
+          }
+          if (this.answerStreamMap[streamKey]) {
+            this.answerStreamMap[streamKey].getTracks().forEach(function(track) {
+              track.stop();
+            });
+            delete this.answerStreamMap[streamKey];
+          }
+        } else {
+          Object.keys(this.localStreamMap).forEach(function(key) {
+            _this4.localStreamMap[key].getTracks().forEach(function(track) {
+              track.stop();
+            });
+          });
+          this.localStreamMap = {};
+          Object.keys(this.remoteStreamMap).forEach(function(key) {
+            _this4.remoteStreamMap[key].getTracks().forEach(function(track) {
+              track.stop();
+            });
+          });
+          this.remoteStreamMap = {};
+          Object.keys(this.answerStreamMap).forEach(function(key) {
+            _this4.answerStreamMap[key].getTracks().forEach(function(track) {
+              track.stop();
+            });
+          });
+          this.answerStreamMap = {};
         }
       }
     }]);
