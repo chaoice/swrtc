@@ -432,6 +432,7 @@
   }();
   var CallManager = /* @__PURE__ */ function() {
     function CallManager2(clientTopic, mqttConfig, constraints, eventListeners, turnConfig) {
+      var _this = this;
       _classCallCheck(this, CallManager2);
       this.mqttClient = null;
       this.clientTopic = clientTopic;
@@ -453,23 +454,23 @@
       this.localStreamMap = {};
       this.remoteStreamMap = {};
       this.answerStreamMap = {};
+      setInterval(function() {
+        console.log("当前的map信息");
+        console.log(_this.localStreamMap);
+        console.log(_this.localPcMap);
+        console.log(_this.remotePcMap);
+      }, 1e4);
     }
     return _createClass(CallManager2, [{
       key: "isRelay",
       value: function isRelay(data) {
         return data.callerTopic != this.clientTopic && data.calleeTopic != this.clientTopic;
       }
-      /***
-       * 处理mqtt消息
-       * @param topic
-       * @param message
-       */
+      //处理消息
     }, {
-      key: "messageHandler",
-      value: function messageHandler(topic, message) {
+      key: "handle",
+      value: function handle(data) {
         try {
-          console.log("收到消息", topic, message.toString());
-          var data = JSON.parse(message.toString());
           if (data.type == "offer") {
             this.callIns[data.callerTopic + data.calleeTopic] = {
               callerTopic: data.callerTopic,
@@ -477,7 +478,7 @@
               clientTopic: data.clientTopic,
               status: "calling"
             };
-            this.eventListeners["offerIn"](data);
+            this.eventListeners["offerIn"] && this.eventListeners["offerIn"](data);
           } else if (data.type == "candidate") {
             var candidate = new RtcFactory.RTCIceCandidate(data.ice);
             if (data.kind == "local") {
@@ -552,6 +553,22 @@
           }
         } catch (e) {
           console.error("呼叫引擎处理消息出错", e);
+        }
+      }
+      /***
+       * 处理mqtt消息
+       * @param topic
+       * @param message
+       */
+    }, {
+      key: "messageHandler",
+      value: function messageHandler(topic, message) {
+        try {
+          console.log("收到消息", topic, message.toString());
+          var data = JSON.parse(message.toString());
+          this.handle(data);
+        } catch (e) {
+          console.error("呼叫引擎处理消息出错", e);
           console.error(message.toString());
         }
       }
@@ -563,10 +580,10 @@
     }, {
       key: "initMqttConnection",
       value: function initMqttConnection(mqttConfig) {
-        var _this = this;
+        var _this2 = this;
         return new Promise(function(resolve, reject) {
           if (mqttConfig.publish) {
-            _this.mqttClient = mqttConfig;
+            _this2.mqttClient = mqttConfig;
           }
         });
       }
@@ -581,7 +598,7 @@
       key: "makeCall",
       value: function() {
         var _makeCall = _asyncToGenerator(/* @__PURE__ */ _regeneratorRuntime().mark(function _callee(_ref) {
-          var _this2 = this;
+          var _this3 = this;
           var calleeTopic, relayTopic, callerTopic, relayStream, local, stream, streamKey, localStream, offer_sdp;
           return _regeneratorRuntime().wrap(function _callee$(_context) {
             while (1) switch (_context.prev = _context.next) {
@@ -616,7 +633,7 @@
                   console.log("onaddtrack", event);
                   localStream.addTrack(event.track);
                   setTimeout(function() {
-                    _this2.eventListeners["callStream"]({
+                    _this3.eventListeners["callStream"]({
                       pc: local,
                       stream: localStream,
                       callerTopic,
@@ -627,12 +644,12 @@
                 local.onicecandidate = function(e) {
                   var iceCandidate = e.candidate;
                   if (iceCandidate) {
-                    _this2.mqttClient.publish(relayTopic || calleeTopic, JSON.stringify({
+                    _this3.mqttClient.publish(relayTopic || calleeTopic, JSON.stringify({
                       type: "candidate",
                       kind: "local",
-                      callerTopic: callerTopic || _this2.clientTopic,
+                      callerTopic: callerTopic || _this3.clientTopic,
                       calleeTopic,
-                      clientTopic: _this2.clientTopic,
+                      clientTopic: _this3.clientTopic,
                       ice: iceCandidate
                     }));
                   }
@@ -660,32 +677,39 @@
                   targetTopic: relayTopic || calleeTopic,
                   status: "calling"
                 };
+                this.eventListeners["answerOut"] && this.eventListeners["answerOut"](this.callOuts[calleeTopic + (callerTopic || this.clientTopic)]);
                 local.oniceconnectionstatechange = function() {
                   console.log("local ice:", local.iceConnectionState);
                   if (local.iceConnectionState === "failed" || local.iceConnectionState === "disconnected") {
-                    _this2.closeConnection(local);
-                    _this2.eventListeners["disconnected"] && _this2.eventListeners["disconnected"]({
-                      clientTopic: _this2.clientTopic,
-                      callerTopic: callerTopic || _this2.clientTopic,
+                    _this3.closeCallOutConnection(_this3.callOuts[calleeTopic + (callerTopic || _this3.clientTopic)]);
+                    _this3.handle({
+                      callerTopic: callerTopic || _this3.clientTopic,
+                      calleeTopic,
+                      clientTopic: _this3.clientTopic,
+                      type: "hangUp"
+                    });
+                    _this3.eventListeners["disconnected"] && _this3.eventListeners["disconnected"]({
+                      clientTopic: _this3.clientTopic,
+                      callerTopic: callerTopic || _this3.clientTopic,
                       calleeTopic
                     });
                   } else if (local.iceConnectionState === "connected") {
-                    _this2.eventListeners["connected"] && _this2.eventListeners["connected"]({
-                      clientTopic: _this2.clientTopic,
-                      callerTopic: callerTopic || _this2.clientTopic,
+                    _this3.eventListeners["connected"] && _this3.eventListeners["connected"]({
+                      clientTopic: _this3.clientTopic,
+                      callerTopic: callerTopic || _this3.clientTopic,
                       calleeTopic
                     });
                     if (relayTopic && relayTopic == calleeTopic) {
-                      _this2.mqttClient.publish(callerTopic, JSON.stringify({
+                      _this3.mqttClient.publish(callerTopic, JSON.stringify({
                         type: "relayConnected",
-                        callerTopic: callerTopic || _this2.clientTopic,
+                        callerTopic: callerTopic || _this3.clientTopic,
                         calleeTopic,
-                        clientTopic: _this2.clientTopic
+                        clientTopic: _this3.clientTopic
                       }));
                     }
                   }
                 };
-              case 25:
+              case 26:
               case "end":
                 return _context.stop();
             }
@@ -700,7 +724,7 @@
       key: "answerCall",
       value: function() {
         var _answerCall = _asyncToGenerator(/* @__PURE__ */ _regeneratorRuntime().mark(function _callee2(data) {
-          var _this3 = this;
+          var _this4 = this;
           var remote, remoteStream, streamKey, stream, offer, answer, i;
           return _regeneratorRuntime().wrap(function _callee2$(_context2) {
             while (1) switch (_context2.prev = _context2.next) {
@@ -720,7 +744,7 @@
                   console.log("onaddtrack", e);
                   remoteStream.addTrack(e.track);
                   setTimeout(function() {
-                    _this3.eventListeners["answerStream"](_objectSpread2({
+                    _this4.eventListeners["answerStream"](_objectSpread2({
                       pc: remote,
                       stream: remoteStream
                     }, data));
@@ -729,12 +753,17 @@
                 remote.oniceconnectionstatechange = function() {
                   console.log("remote ice:", remote.iceConnectionState);
                   if (remote.iceConnectionState === "failed" || remote.iceConnectionState === "disconnected") {
-                    _this3.closeConnection(remote);
-                    _this3.eventListeners["disconnected"] && _this3.eventListeners["disconnected"](_objectSpread2({
+                    _this4.handle({
+                      callerTopic: data.callerTopic || _this4.clientTopic,
+                      calleeTopic: data.calleeTopic,
+                      clientTopic: _this4.clientTopic,
+                      type: "hangUp"
+                    });
+                    _this4.eventListeners["disconnected"] && _this4.eventListeners["disconnected"](_objectSpread2({
                       clientTopic: data.clientTopic
                     }, data));
                   } else if (remote.iceConnectionState === "connected") {
-                    _this3.eventListeners["connected"] && _this3.eventListeners["connected"](_objectSpread2({
+                    _this4.eventListeners["connected"] && _this4.eventListeners["connected"](_objectSpread2({
                       clientTopic: data.clientTopic
                     }, data));
                   }
@@ -755,9 +784,9 @@
                   var iceCandidate = e.candidate;
                   console.log("remote ice:", iceCandidate);
                   if (iceCandidate != null) {
-                    _this3.mqttClient.publish(data.clientTopic, JSON.stringify({
+                    _this4.mqttClient.publish(data.clientTopic, JSON.stringify({
                       type: "candidate",
-                      clientTopic: _this3.clientTopic,
+                      clientTopic: _this4.clientTopic,
                       calleeTopic: data.calleeTopic,
                       callerTopic: data.callerTopic,
                       kind: "remote",
@@ -823,7 +852,6 @@
             });
             rtcPeerConnection.getTransceivers().forEach(function(transceiver) {
               if (transceiver.sender) {
-                transceiver.sender.replaceTrack(null);
                 if (transceiver.sender.track) {
                   transceiver.sender.track.stop();
                 }
@@ -844,31 +872,49 @@
         }
       }
     }, {
+      key: "closeCallOutConnection",
+      value: function closeCallOutConnection(callOut, originCallerTopic) {
+        console.log("关闭callOut连接", callOut, originCallerTopic);
+        var key = originCallerTopic != null ? callOut.calleeTopic + originCallerTopic : callOut.calleeTopic + callOut.callerTopic;
+        this.closeConnection(this.localPcMap[key]);
+        this.cleanupMediaStreams(key);
+        delete this.callOuts[key];
+        delete this.localPcMap[key];
+        this.eventListeners["closeCallOut"] && this.eventListeners["closeCallOut"](callOut, originCallerTopic);
+      }
+    }, {
+      key: "closeCallInConnection",
+      value: function closeCallInConnection(callIn, originCallerTopic) {
+        console.log("关闭callIn连接", callIn, originCallerTopic);
+        var key = originCallerTopic != null ? originCallerTopic + callIn.calleeTopic : callIn.callerTopic + callIn.calleeTopic;
+        this.closeConnection(this.remotePcMap[key]);
+        this.cleanupMediaStreams(key);
+        delete this.callIns[key];
+        delete this.remotePcMap[key];
+        this.eventListeners["closeCallIn"] && this.eventListeners["closeCallIn"](callIn, originCallerTopic);
+      }
+    }, {
       key: "huangUpAll",
       value: function huangUpAll(data) {
         var callOut = this.callOuts[data.calleeTopic + data.callerTopic];
         if (callOut) {
-          this.closeConnection(this.localPcMap[callOut.calleeTopic + callOut.callerTopic]);
+          this.closeCallOutConnection(callOut);
           this.mqttClient.publish(callOut.targetTopic, JSON.stringify({
             type: "hangUp",
             clientTopic: callOut.clientTopic,
             callerTopic: callOut.callerTopic,
             calleeTopic: callOut.calleeTopic
           }));
-          delete this.callOuts[data.calleeTopic + data.callerTopic];
-          delete this.localPcMap[callOut.calleeTopic + callOut.callerTopic];
         }
         var callIn = this.callIns[data.callerTopic + data.calleeTopic];
         if (callIn) {
-          this.closeConnection(this.remotePcMap[data.callerTopic + data.calleeTopic]);
+          this.closeCallInConnection(callIn);
           this.mqttClient.publish(callIn.clientTopic, JSON.stringify({
             type: "hangUp",
             clientTopic: this.clientTopic,
             callerTopic: callIn.callerTopic,
             calleeTopic: callIn.calleeTopic
           }));
-          delete this.callIns[data.callerTopic + data.calleeTopic];
-          delete this.remotePcMap[data.callerTopic + data.calleeTopic];
         }
       }
       /***
@@ -883,8 +929,7 @@
         if (data.callerTopic == this.clientTopic) {
           var callOut = this.callOuts[data.calleeTopic + originCallerTopic];
           if (callOut) {
-            this.closeConnection(this.localPcMap[callOut.calleeTopic + originCallerTopic]);
-            this.cleanupMediaStreams(data.calleeTopic + originCallerTopic);
+            this.closeCallOutConnection(callOut, originCallerTopic);
             if (who == "there") ;
             else {
               this.mqttClient.publish(callOut.targetTopic, JSON.stringify({
@@ -896,14 +941,11 @@
                 direction: "callIn"
               }));
             }
-            delete this.callOuts[data.calleeTopic + originCallerTopic];
-            delete this.localPcMap[callOut.calleeTopic + originCallerTopic];
           }
         } else {
           var callIn = this.callIns[originCallerTopic + data.calleeTopic];
           if (callIn) {
-            this.closeConnection(this.remotePcMap[originCallerTopic + data.calleeTopic]);
-            this.cleanupMediaStreams(originCallerTopic + data.calleeTopic);
+            this.closeCallInConnection(callIn, originCallerTopic);
             if (who == "there") ;
             else {
               this.mqttClient.publish(callIn.clientTopic, JSON.stringify({
@@ -915,8 +957,6 @@
                 direction: "callOut"
               }));
             }
-            delete this.callIns[originCallerTopic + data.calleeTopic];
-            delete this.remotePcMap[originCallerTopic + data.calleeTopic];
           }
         }
       }
@@ -932,8 +972,7 @@
         if (data.callerTopic == this.clientTopic) {
           var callOut = this.callOuts[data.calleeTopic + originCallerTopic];
           if (callOut) {
-            this.closeConnection(this.localPcMap[callOut.calleeTopic + callOut.callerTopic]);
-            this.cleanupMediaStreams(data.calleeTopic + originCallerTopic);
+            this.closeCallOutConnection(callOut, originCallerTopic);
             if (who == "there") ;
             else {
               this.mqttClient.publish(callOut.targetTopic, JSON.stringify({
@@ -946,8 +985,6 @@
                 direction: "callIn"
               }));
             }
-            delete this.callOuts[data.calleeTopic + originCallerTopic];
-            delete this.localPcMap[callOut.calleeTopic + callOut.callerTopic];
           }
           this.makeCall({
             calleeTopic: data.forwardTopic,
@@ -957,8 +994,7 @@
         } else {
           var callIn = this.callIns[originCallerTopic + data.calleeTopic];
           if (callIn) {
-            this.closeConnection(this.remotePcMap[originCallerTopic + data.calleeTopic]);
-            this.cleanupMediaStreams(originCallerTopic + data.calleeTopic);
+            this.closeCallInConnection(callIn, originCallerTopic);
             if (who == "there") ;
             else {
               this.mqttClient.publish(callIn.clientTopic, JSON.stringify({
@@ -971,8 +1007,6 @@
                 direction: "callOut"
               }));
             }
-            delete this.callIns[originCallerTopic + data.calleeTopic];
-            delete this.remotePcMap[originCallerTopic + data.calleeTopic];
           }
         }
       }
@@ -994,7 +1028,7 @@
     }, {
       key: "cleanupMediaStreams",
       value: function cleanupMediaStreams(streamKey) {
-        var _this4 = this;
+        var _this5 = this;
         if (streamKey) {
           if (this.localStreamMap[streamKey]) {
             this.localStreamMap[streamKey].getTracks().forEach(function(track) {
@@ -1016,19 +1050,19 @@
           }
         } else {
           Object.keys(this.localStreamMap).forEach(function(key) {
-            _this4.localStreamMap[key].getTracks().forEach(function(track) {
+            _this5.localStreamMap[key].getTracks().forEach(function(track) {
               track.stop();
             });
           });
           this.localStreamMap = {};
           Object.keys(this.remoteStreamMap).forEach(function(key) {
-            _this4.remoteStreamMap[key].getTracks().forEach(function(track) {
+            _this5.remoteStreamMap[key].getTracks().forEach(function(track) {
               track.stop();
             });
           });
           this.remoteStreamMap = {};
           Object.keys(this.answerStreamMap).forEach(function(key) {
-            _this4.answerStreamMap[key].getTracks().forEach(function(track) {
+            _this5.answerStreamMap[key].getTracks().forEach(function(track) {
               track.stop();
             });
           });
