@@ -455,10 +455,39 @@
       this.remoteStreamMap = {};
       this.answerStreamMap = {};
       setInterval(function() {
-        console.log("当前的map信息");
-        console.log(_this.localStreamMap);
-        console.log(_this.localPcMap);
-        console.log(_this.remotePcMap);
+        for (var key in _this.callIns) {
+          var call = _this.callIns[key];
+          if (_this.remotePcMap[call.callerTopic + call.calleeTopic].connectionState == "disconnected" || _this.remotePcMap[call.callerTopic + call.calleeTopic].connectionState == "failed") {
+            console.log("存在异常连接状态", call);
+            if (call.errRemoteCnt != null) {
+              _this.handle({
+                type: "hangUp",
+                callerTopic: call.callerTopic,
+                calleeTopic: call.calleeTopic,
+                clientTopic: _this.clientTopic
+              });
+            } else {
+              call.errRemoteCnt = 1;
+            }
+          } else {
+            delete call.errRemoteCnt;
+          }
+          if (_this.localPcMap[call.calleeTopic + call.callerTopic].connectionState == "disconnected" || _this.localPcMap[call.calleeTopic + call.callerTopic].connectionState == "failed") {
+            console.log("存在异常连接状态", call);
+            if (call.errLocalCnt != null) {
+              _this.handle({
+                type: "hangUp",
+                callerTopic: call.callerTopic,
+                calleeTopic: call.calleeTopic,
+                clientTopic: _this.clientTopic
+              });
+            } else {
+              call.errLocalCnt = 1;
+            }
+          } else {
+            delete call.errLocalCnt;
+          }
+        }
       }, 1e4);
     }
     return _createClass(CallManager2, [{
