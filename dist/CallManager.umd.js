@@ -455,6 +455,9 @@
       this.remoteStreamMap = {};
       this.answerStreamMap = {};
       setInterval(function() {
+        console.log("当前的map信息");
+        console.log(_this.localPcMap);
+        console.log(_this.remotePcMap);
         for (var key in _this.callIns) {
           var call = _this.callIns[key];
           if (_this.remotePcMap[call.callerTopic + call.calleeTopic].connectionState == "disconnected" || _this.remotePcMap[call.callerTopic + call.calleeTopic].connectionState == "failed") {
@@ -903,24 +906,28 @@
     }, {
       key: "closeCallOutConnection",
       value: function closeCallOutConnection(callOut, originCallerTopic) {
-        console.log("关闭callOut连接", callOut, originCallerTopic);
-        var key = originCallerTopic != null ? callOut.calleeTopic + originCallerTopic : callOut.calleeTopic + callOut.callerTopic;
-        this.closeConnection(this.localPcMap[key]);
-        this.cleanupMediaStreams(key);
-        delete this.callOuts[key];
-        delete this.localPcMap[key];
-        this.eventListeners["closeCallOut"] && this.eventListeners["closeCallOut"](callOut, originCallerTopic);
+        if (callOut != null) {
+          console.log("关闭callOut连接", callOut, originCallerTopic);
+          var key = originCallerTopic != null ? callOut.calleeTopic + originCallerTopic : callOut.calleeTopic + callOut.callerTopic;
+          this.closeConnection(this.localPcMap[key]);
+          this.cleanupMediaStreams(key);
+          delete this.callOuts[key];
+          delete this.localPcMap[key];
+          this.eventListeners["closeCallOut"] && this.eventListeners["closeCallOut"](callOut, originCallerTopic);
+        }
       }
     }, {
       key: "closeCallInConnection",
       value: function closeCallInConnection(callIn, originCallerTopic) {
-        console.log("关闭callIn连接", callIn, originCallerTopic);
-        var key = originCallerTopic != null ? originCallerTopic + callIn.calleeTopic : callIn.callerTopic + callIn.calleeTopic;
-        this.closeConnection(this.remotePcMap[key]);
-        this.cleanupMediaStreams(key);
-        delete this.callIns[key];
-        delete this.remotePcMap[key];
-        this.eventListeners["closeCallIn"] && this.eventListeners["closeCallIn"](callIn, originCallerTopic);
+        if (callIn != null) {
+          console.log("关闭callIn连接", callIn, originCallerTopic);
+          var key = originCallerTopic != null ? originCallerTopic + callIn.calleeTopic : callIn.callerTopic + callIn.calleeTopic;
+          this.closeConnection(this.remotePcMap[key]);
+          this.cleanupMediaStreams(key);
+          delete this.callIns[key];
+          delete this.remotePcMap[key];
+          this.eventListeners["closeCallIn"] && this.eventListeners["closeCallIn"](callIn, originCallerTopic);
+        }
       }
     }, {
       key: "huangUpAll",
