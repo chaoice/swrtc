@@ -434,6 +434,7 @@
     function CallManager2(clientTopic, mqttConfig, constraints, eventListeners, turnConfig) {
       var _this = this;
       _classCallCheck(this, CallManager2);
+      _defineProperty(this, "closeExistPC", void 0);
       this.mqttClient = null;
       this.clientTopic = clientTopic;
       this.initMqttConnection(mqttConfig);
@@ -458,6 +459,7 @@
         console.log("当前的map信息");
         console.log(_this.localPcMap);
         console.log(_this.remotePcMap);
+        console.log(_this.callIns);
         for (var key in _this.callIns) {
           var call = _this.callIns[key];
           if (_this.remotePcMap[call.callerTopic + call.calleeTopic].connectionState == "disconnected" || _this.remotePcMap[call.callerTopic + call.calleeTopic].connectionState == "failed") {
@@ -498,95 +500,97 @@
       value: function isRelay(data) {
         return data.callerTopic != this.clientTopic && data.calleeTopic != this.clientTopic;
       }
-      //处理消息
     }, {
       key: "handle",
-      value: function handle(data) {
-        try {
-          if (data.type == "offer") {
-            this.callIns[data.callerTopic + data.calleeTopic] = {
-              callerTopic: data.callerTopic,
-              calleeTopic: data.calleeTopic,
-              clientTopic: data.clientTopic,
-              status: "calling"
-            };
-            this.eventListeners["offerIn"] && this.eventListeners["offerIn"](data);
-          } else if (data.type == "candidate") {
-            var candidate = new RtcFactory.RTCIceCandidate(data.ice);
-            if (data.kind == "local") {
-              if (this.remotePcMap[data.callerTopic + data.calleeTopic] && this.remotePcMap[data.callerTopic + data.calleeTopic].remoteDescription != null) {
-                this.remotePcMap[data.callerTopic + data.calleeTopic].addIceCandidate(candidate);
-              } else {
-                if (!this.remoteIcesMap[data.callerTopic + data.calleeTopic]) {
-                  this.remoteIcesMap[data.callerTopic + data.calleeTopic] = [];
+      value: (
+        //处理消息
+        function handle(data) {
+          try {
+            if (data.type == "offer") {
+              this.callIns[data.callerTopic + data.calleeTopic] = {
+                callerTopic: data.callerTopic,
+                calleeTopic: data.calleeTopic,
+                clientTopic: data.clientTopic,
+                status: "calling"
+              };
+              this.eventListeners["offerIn"] && this.eventListeners["offerIn"](data);
+            } else if (data.type == "candidate") {
+              var candidate = new RtcFactory.RTCIceCandidate(data.ice);
+              if (data.kind == "local") {
+                if (this.remotePcMap[data.callerTopic + data.calleeTopic] && this.remotePcMap[data.callerTopic + data.calleeTopic].remoteDescription != null) {
+                  this.remotePcMap[data.callerTopic + data.calleeTopic].addIceCandidate(candidate);
+                } else {
+                  if (!this.remoteIcesMap[data.callerTopic + data.calleeTopic]) {
+                    this.remoteIcesMap[data.callerTopic + data.calleeTopic] = [];
+                  }
+                  this.remoteIcesMap[data.callerTopic + data.calleeTopic].push(candidate);
                 }
-                this.remoteIcesMap[data.callerTopic + data.calleeTopic].push(candidate);
-              }
-            } else {
-              this.localPcMap[data.calleeTopic + data.callerTopic].addIceCandidate(candidate);
-            }
-          } else if (data.type == "answer") {
-            if (this.localPcMap[data.calleeTopic + data.callerTopic].remoteDescription == null) {
-              var answer = new RtcFactory.RTCSessionDescription(data.sdp);
-              this.localPcMap[data.calleeTopic + data.callerTopic].setRemoteDescription(answer);
-              this.callOuts[data.calleeTopic + data.callerTopic].status = "answered";
-            } else {
-              console.error("answer重复");
-            }
-          } else if (data.type == "hangUp") {
-            if (this.isRelay(data)) {
-              if (data.clientTopic == data.callerTopic) {
-                this.hangUp(data, "there");
               } else {
-                this.hangUp(data);
+                this.localPcMap[data.calleeTopic + data.callerTopic].addIceCandidate(candidate);
               }
-              this.hangUp(_objectSpread2(_objectSpread2({}, data), {}, {
-                callerTopic: this.clientTopic,
-                originCallerTopic: data.callerTopic
-              }));
-            } else {
-              this.hangUp(data, "there");
-            }
-            this.eventListeners["hangUp"] && this.eventListeners["hangUp"](data);
-          } else if (data.type == "reject") {
-            if (this.isRelay(data)) {
-              if (data.clientTopic == data.callerTopic) {
-                this.hangUp(data, "there");
+            } else if (data.type == "answer") {
+              if (this.localPcMap[data.calleeTopic + data.callerTopic].remoteDescription == null) {
+                var answer = new RtcFactory.RTCSessionDescription(data.sdp);
+                this.localPcMap[data.calleeTopic + data.callerTopic].setRemoteDescription(answer);
+                this.callOuts[data.calleeTopic + data.callerTopic].status = "answered";
               } else {
-                this.hangUp(data);
+                console.error("answer重复");
               }
-              this.hangUp(_objectSpread2(_objectSpread2({}, data), {}, {
-                callerTopic: this.clientTopic
-              }));
-            } else {
-              this.hangUp(data, "there");
-            }
-            this.eventListeners["reject"] && this.eventListeners["reject"](data);
-          } else if (data.type == "forward") {
-            if (this.isRelay(data)) {
-              if (data.clientTopic == data.callerTopic) {
+            } else if (data.type == "hangUp") {
+              if (this.isRelay(data)) {
+                if (data.clientTopic == data.callerTopic) {
+                  this.hangUp(data, "there");
+                } else {
+                  this.hangUp(data);
+                }
+                this.hangUp(_objectSpread2(_objectSpread2({}, data), {}, {
+                  callerTopic: this.clientTopic,
+                  originCallerTopic: data.callerTopic
+                }));
+              } else {
+                this.hangUp(data, "there");
+              }
+              this.eventListeners["hangUp"] && this.eventListeners["hangUp"](data);
+            } else if (data.type == "reject") {
+              if (this.isRelay(data)) {
+                if (data.clientTopic == data.callerTopic) {
+                  this.hangUp(data, "there");
+                } else {
+                  this.hangUp(data);
+                }
+                this.hangUp(_objectSpread2(_objectSpread2({}, data), {}, {
+                  callerTopic: this.clientTopic
+                }));
+              } else {
+                this.hangUp(data, "there");
+              }
+              this.eventListeners["reject"] && this.eventListeners["reject"](data);
+            } else if (data.type == "forward") {
+              if (this.isRelay(data)) {
+                if (data.clientTopic == data.callerTopic) {
+                  this.forwardCall(data, "there");
+                } else {
+                  this.forwardCall(data);
+                }
+                this.forwardCall(_objectSpread2(_objectSpread2({}, data), {}, {
+                  callerTopic: this.clientTopic,
+                  originCallerTopic: data.callerTopic
+                }));
+              } else {
                 this.forwardCall(data, "there");
-              } else {
-                this.forwardCall(data);
               }
-              this.forwardCall(_objectSpread2(_objectSpread2({}, data), {}, {
-                callerTopic: this.clientTopic,
-                originCallerTopic: data.callerTopic
-              }));
-            } else {
-              this.forwardCall(data, "there");
+              this.eventListeners["forwardCall"] && this.eventListeners["forwardCall"](data);
+            } else if (data.type == "answered") {
+              if (this.callIns[data.callerTopic + data.calleeTopic].status != "answered") {
+                this.eventListeners["answered"] && this.eventListeners["answered"](data);
+                delete this.callIns[data.callerTopic + data.calleeTopic];
+              }
             }
-            this.eventListeners["forwardCall"] && this.eventListeners["forwardCall"](data);
-          } else if (data.type == "answered") {
-            if (this.callIns[data.callerTopic + data.calleeTopic].status != "answered") {
-              this.eventListeners["answered"] && this.eventListeners["answered"](data);
-              delete this.callIns[data.callerTopic + data.calleeTopic];
-            }
+          } catch (e) {
+            console.error("呼叫引擎处理消息出错", e);
           }
-        } catch (e) {
-          console.error("呼叫引擎处理消息出错", e);
         }
-      }
+      )
       /***
        * 处理mqtt消息
        * @param topic
@@ -636,17 +640,23 @@
             while (1) switch (_context.prev = _context.next) {
               case 0:
                 calleeTopic = _ref.calleeTopic, relayTopic = _ref.relayTopic, callerTopic = _ref.callerTopic, relayStream = _ref.relayStream;
+                if (this.localPcMap[calleeTopic + (callerTopic || this.clientTopic)] != null) {
+                  this.closeCallOutConnection({
+                    callerTopic,
+                    calleeTopic
+                  }, null, false);
+                }
                 local = new RtcFactory.RTCPeerConnection(this.turnConfig);
                 _context.t0 = relayStream;
                 if (_context.t0) {
-                  _context.next = 7;
+                  _context.next = 8;
                   break;
                 }
-                _context.next = 6;
+                _context.next = 7;
                 return RtcFactory.getUserMedia(this.constraints);
-              case 6:
-                _context.t0 = _context.sent;
               case 7:
+                _context.t0 = _context.sent;
+              case 8:
                 stream = _context.t0;
                 streamKey = calleeTopic + (callerTopic || this.clientTopic);
                 this.localStreamMap[streamKey] = stream;
@@ -686,11 +696,11 @@
                     }));
                   }
                 };
-                _context.next = 18;
+                _context.next = 19;
                 return local.createOffer({
                   offerOptions: 1
                 });
-              case 18:
+              case 19:
                 offer_sdp = _context.sent;
                 local.setLocalDescription(offer_sdp);
                 this.localPcMap[calleeTopic + (callerTopic || this.clientTopic)] = local;
@@ -741,7 +751,7 @@
                     }
                   }
                 };
-              case 26:
+              case 27:
               case "end":
                 return _context.stop();
             }
@@ -767,6 +777,9 @@
                 }
                 return _context2.abrupt("return");
               case 2:
+                if (this.remotePcMap[data.callerTopic + data.calleeTopic] != null) {
+                  this.closeCallInConnection(data, null, false);
+                }
                 remote = new RtcFactory.RTCPeerConnection(this.turnConfig);
                 this.remotePcMap[data.callerTopic + data.calleeTopic] = remote;
                 remoteStream = new RtcFactory.MediaStream();
@@ -800,9 +813,9 @@
                     }, data));
                   }
                 };
-                _context2.next = 11;
+                _context2.next = 12;
                 return RtcFactory.getUserMedia(this.constraints);
-              case 11:
+              case 12:
                 stream = _context2.sent;
                 this.answerStreamMap[streamKey] = stream;
                 stream.getTracks().forEach(function(track) {
@@ -828,9 +841,9 @@
                 };
                 offer = new RtcFactory.RTCSessionDescription(data.sdp);
                 remote.setRemoteDescription(offer);
-                _context2.next = 20;
+                _context2.next = 21;
                 return remote.createAnswer();
-              case 20:
+              case 21:
                 answer = _context2.sent;
                 console.log("createAnswer", answer);
                 remote.setLocalDescription(answer);
@@ -856,7 +869,7 @@
                   }));
                 }
                 return _context2.abrupt("return", remote);
-              case 28:
+              case 29:
               case "end":
                 return _context2.stop();
             }
@@ -906,12 +919,15 @@
     }, {
       key: "closeCallOutConnection",
       value: function closeCallOutConnection(callOut, originCallerTopic) {
+        var deleteCallOut = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : true;
         if (callOut != null) {
           console.log("关闭callOut连接", callOut, originCallerTopic);
           var key = originCallerTopic != null ? callOut.calleeTopic + originCallerTopic : callOut.calleeTopic + callOut.callerTopic;
           this.closeConnection(this.localPcMap[key]);
           this.cleanupMediaStreams(key);
-          delete this.callOuts[key];
+          if (deleteCallOut) {
+            delete this.callOuts[key];
+          }
           delete this.localPcMap[key];
           this.eventListeners["closeCallOut"] && this.eventListeners["closeCallOut"](callOut, originCallerTopic);
         }
@@ -919,12 +935,15 @@
     }, {
       key: "closeCallInConnection",
       value: function closeCallInConnection(callIn, originCallerTopic) {
+        var deleteCallIn = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : true;
         if (callIn != null) {
           console.log("关闭callIn连接", callIn, originCallerTopic);
           var key = originCallerTopic != null ? originCallerTopic + callIn.calleeTopic : callIn.callerTopic + callIn.calleeTopic;
           this.closeConnection(this.remotePcMap[key]);
           this.cleanupMediaStreams(key);
-          delete this.callIns[key];
+          if (deleteCallIn) {
+            delete this.callIns[key];
+          }
           delete this.remotePcMap[key];
           this.eventListeners["closeCallIn"] && this.eventListeners["closeCallIn"](callIn, originCallerTopic);
         }
